@@ -1,0 +1,9 @@
+add_executable(wiretap_tests
+  test_itch.cpp
+  test_decoder.cpp
+  test_malformed.cpp
+  test_roundtrip.cpp)
+target_link_libraries(wiretap_tests PRIVATE wiretap GTest::gtest_main)
+target_compile_definitions(wiretap_tests PRIVATE
+  WIRETAP_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
+add_test(NAME wiretap_tests COMMAND wiretap_tests)
