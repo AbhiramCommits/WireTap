@@ -18,6 +18,8 @@ Supported message types (field layout matches ITCH 5.0):
 Prices are 4-byte unsigned with 4 implied decimal places (ticks).
 Output is fully deterministic for a given --seed. --drop-rate omits whole
 packets while sequence numbers keep advancing, so gap recovery can be tested.
+A run with --drop-rate is an exact subsequence of the equivalent zero-drop
+run (dropping never perturbs the message stream).
 
 Examples:
   python3 tools/feedgen.py --out capture.bin --messages 1000000
@@ -236,7 +238,10 @@ class Feed:
             nonlocal count, off, pending, next_due, written, dropped
             _HEADER.pack_into(buf, 0, SESSION, self.seq, count)
             packet = bytes(buf[:off])
-            if self.drop_rate > 0 and rng.random() < self.drop_rate:
+            # The drop roll is ALWAYS drawn so that a run with --drop-rate is
+            # an exact subsequence of the equivalent zero-drop run: dropping
+            # must not perturb the message stream, only omit packets.
+            if rng.random() < self.drop_rate:
                 dropped += 1
             else:
                 sink.write(packet)

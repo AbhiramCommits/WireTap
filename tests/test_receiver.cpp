@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "receiver.hpp"
+#include "time_base.hpp"
 #include "wiretap/spsc_ring.hpp"
 
 namespace wt = wiretap;
@@ -27,6 +28,7 @@ namespace {
 constexpr int kNumDatagrams = 100;
 
 void run_loopback_test(wt::RecvMode mode) {
+  wt::TimeBase::instance().initialize();
   wt::ReceiverConfig cfg;
   cfg.group = "239.1.1.1";
   cfg.port = 0;           // ephemeral
@@ -106,7 +108,11 @@ void run_loopback_test(wt::RecvMode mode) {
     got[i] = 1;
     ++total;
     EXPECT_EQ(d.length, sizes[i]);
-    EXPECT_GT(d.recv_ts_ns, 0u);
+    EXPECT_GT(d.recv_ts_ticks, 0u);
+    EXPECT_GT(d.hw_ts_ticks, 0u);
+    const std::uint64_t recv_ns =
+        wt::TimeBase::instance().ticks_to_realtime_ns(d.recv_ts_ticks);
+    EXPECT_GT(recv_ns, 1500000000000000000ull);  // sane wall-clock value
     for (std::size_t j = 4; j < sizes[i]; ++j) {
       EXPECT_EQ(d.bytes[j], static_cast<std::uint8_t>((j * 7 + i * 3) & 0xFF))
           << "datagram " << i << " byte " << j;
@@ -123,6 +129,19 @@ void run_loopback_test(wt::RecvMode mode) {
   EXPECT_EQ(rx.oversize_dropped(), 1u);
   EXPECT_EQ(ring.drops(), 0u);
   EXPECT_TRUE(rx.last_error().empty());
+#if defined(__linux__)
+  // On Linux the SO_TIMESTAMPING mechanism is enabled, and loopback traffic
+  // receives kernel software timestamps for every datagram.
+  EXPECT_EQ(rx.timestamp_mechanism(), wt::TimestampMechanism::SofTimestamping);
+  EXPECT_EQ(rx.hw_stamped() + rx.sw_stamped(),
+            static_cast<std::uint64_t>(kNumDatagrams) + 1);
+#else
+  // Elsewhere SO_TIMESTAMPNS (kernel software) is requested; if the platform
+  // kernel delivers them the counters reflect it, otherwise the userspace
+  // fallback keeps hw_ts == recv_ts.
+  EXPECT_LE(rx.hw_stamped() + rx.sw_stamped(),
+            static_cast<std::uint64_t>(kNumDatagrams) + 1);
+#endif
 }
 
 }  // namespace

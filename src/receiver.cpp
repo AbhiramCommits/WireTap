@@ -17,11 +17,16 @@
 #include <utility>
 
 #if defined(__linux__)
-#include <net/if.h>     // if_nametoindex
+#include <linux/net_tstamp.h>  // SOF_TIMESTAMPING_*
+#include <linux/time.h>        // struct scm_timestamping
+#include <net/if.h>            // if_nametoindex
 #include <sys/epoll.h>
 #else
 #include <sys/ioctl.h>  // SIOCGIFADDR
 #endif
+
+#include "latency.hpp"
+#include "time_base.hpp"
 
 namespace wiretap {
 
@@ -32,9 +37,7 @@ constexpr int kEpollTimeoutMs = 200;
 #endif
 constexpr int kMaxDrainRounds = 1024;  // fairness cap per epoll wakeup
 
-inline std::uint64_t realtime_ns() noexcept {
-  struct timespec ts {};
-  ::clock_gettime(CLOCK_REALTIME, &ts);
+[[maybe_unused]] std::uint64_t timespec_ns(const struct timespec& ts) noexcept {
   return static_cast<std::uint64_t>(ts.tv_sec) * 1000000000ull +
          static_cast<std::uint64_t>(ts.tv_nsec);
 }
@@ -60,7 +63,57 @@ std::string iface_ipv4(const std::string& name) {
 }
 #endif
 
+// Extracts the kernel timestamp from a received msghdr's control data.
+// Returns 0 when absent. Counts whether the stamp was hardware or software.
+std::uint64_t kernel_timestamp_ns(const struct msghdr& mh,
+                                  [[maybe_unused]] std::atomic<std::uint64_t>& hw_count,
+                                  [[maybe_unused]] std::atomic<std::uint64_t>& sw_count) noexcept {
+  for (const struct cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr;
+       cmsg = CMSG_NXTHDR(&mh, cmsg)) {
+    if (cmsg->cmsg_level != SOL_SOCKET) continue;
+#if defined(__linux__)
+    if (cmsg->cmsg_type == SCM_TIMESTAMPING &&
+        cmsg->cmsg_len >= CMSG_LEN(sizeof(struct scm_timestamping))) {
+      struct scm_timestamping st {};
+      std::memcpy(&st, CMSG_DATA(cmsg), sizeof st);
+      if (st.ts[2].tv_sec != 0 || st.ts[2].tv_nsec != 0) {  // raw hardware
+        hw_count.fetch_add(1, std::memory_order_relaxed);
+        return timespec_ns(st.ts[2]);
+      }
+      if (st.ts[0].tv_sec != 0 || st.ts[0].tv_nsec != 0) {  // kernel software
+        sw_count.fetch_add(1, std::memory_order_relaxed);
+        return timespec_ns(st.ts[0]);
+      }
+    }
+#endif
+#if defined(SCM_TIMESTAMPNS)
+    if (cmsg->cmsg_type == SCM_TIMESTAMPNS &&
+        cmsg->cmsg_len >= CMSG_LEN(sizeof(struct timespec))) {
+      struct timespec ts {};
+      std::memcpy(&ts, CMSG_DATA(cmsg), sizeof ts);
+      if (ts.tv_sec != 0 || ts.tv_nsec != 0) {
+        sw_count.fetch_add(1, std::memory_order_relaxed);
+        return timespec_ns(ts);
+      }
+    }
+#endif
+  }
+  return 0;
+}
+
 }  // namespace
+
+const char* timestamp_mechanism_name(TimestampMechanism m) noexcept {
+  switch (m) {
+    case TimestampMechanism::SofTimestamping:
+      return "SO_TIMESTAMPING (hardware or kernel software)";
+    case TimestampMechanism::SofTimestampNs:
+      return "SO_TIMESTAMPNS (kernel software)";
+    case TimestampMechanism::UserspaceClock:
+    default:
+      return "userspace clock (no kernel timestamps)";
+  }
+}
 
 Receiver::~Receiver() {
   if (epfd_ >= 0) ::close(epfd_);
@@ -155,6 +208,30 @@ bool Receiver::open_socket(std::string& err) {
 #endif
   }
 
+  // Timestamping tier: prefer SO_TIMESTAMPING (hardware + software), then
+  // SO_TIMESTAMPNS (kernel software), then plain userspace clock. The chosen
+  // mechanism is reported at startup; per-datagram hw/sw counters at shutdown
+  // make clear which tier actually delivered stamps.
+  cmsg_len_ = 0;
+#if defined(__linux__)
+  const int ts_flags = SOF_TIMESTAMPING_RX_HARDWARE | SOF_TIMESTAMPING_RX_SOFTWARE |
+                       SOF_TIMESTAMPING_RAW_HARDWARE | SOF_TIMESTAMPING_SOFTWARE;
+  if (::setsockopt(fd_, SOL_SOCKET, SO_TIMESTAMPING, &ts_flags,
+                   sizeof ts_flags) == 0) {
+    ts_mech_ = TimestampMechanism::SofTimestamping;
+    cmsg_len_ = CMSG_SPACE(sizeof(struct scm_timestamping));
+  } else
+#endif
+#if defined(SO_TIMESTAMPNS)
+      if (::setsockopt(fd_, SOL_SOCKET, SO_TIMESTAMPNS, &yes, sizeof yes) == 0) {
+    ts_mech_ = TimestampMechanism::SofTimestampNs;
+    cmsg_len_ = CMSG_SPACE(sizeof(struct timespec));
+  } else
+#endif
+  {
+    ts_mech_ = TimestampMechanism::UserspaceClock;
+  }
+
   if (cfg_.rcvbuf > 0) {
     ::setsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &cfg_.rcvbuf,
                  sizeof cfg_.rcvbuf);
@@ -189,12 +266,19 @@ bool Receiver::open_socket(std::string& err) {
   msgs_.resize(n);
   iovs_.resize(n);
   batch_buf_.reset(new std::uint8_t[n * kMaxDatagramBytes]);
+  if (cmsg_len_ > 0) {
+    ctrl_buf_.reset(new std::uint8_t[n * cmsg_len_]);
+  }
   for (std::size_t i = 0; i < n; ++i) {
     iovs_[i].iov_base = batch_buf_.get() + i * kMaxDatagramBytes;
     iovs_[i].iov_len = kMaxDatagramBytes;
     std::memset(&msgs_[i], 0, sizeof msgs_[i]);
     msgs_[i].msg_hdr.msg_iov = &iovs_[i];
     msgs_[i].msg_hdr.msg_iovlen = 1;
+    if (ctrl_buf_) {
+      msgs_[i].msg_hdr.msg_control = ctrl_buf_.get() + i * cmsg_len_;
+      msgs_[i].msg_hdr.msg_controllen = cmsg_len_;
+    }
   }
 #else
   buf_.reset(new std::uint8_t[kMaxDatagramBytes]);
@@ -203,15 +287,22 @@ bool Receiver::open_socket(std::string& err) {
   std::memset(&msg_, 0, sizeof msg_);
   msg_.msg_iov = &iov_;
   msg_.msg_iovlen = 1;
+  if (cmsg_len_ > 0) {
+    ctrl_buf_.reset(new std::uint8_t[cmsg_len_]);
+    msg_.msg_control = ctrl_buf_.get();
+    msg_.msg_controllen = cmsg_len_;
+  }
 #endif
 
   return true;
 }
 
-bool Receiver::drain_once(SpscRing<Datagram>& ring) noexcept {
-  const std::uint64_t ts = realtime_ns();
+bool Receiver::drain_once(SpscRing<Datagram>& ring,
+                          LatencyRecorder* recorder) noexcept {
+  TimeBase& tb = TimeBase::instance();
 
 #if defined(__linux__)
+  for (auto& m : msgs_) m.msg_hdr.msg_controllen = cmsg_len_;  // reset each call
   const int n = ::recvmmsg(fd_, msgs_.data(),
                            static_cast<unsigned int>(msgs_.size()),
                            MSG_DONTWAIT, nullptr);
@@ -233,21 +324,30 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring) noexcept {
       oversize_.fetch_add(1, std::memory_order_relaxed);
       continue;
     }
+    const std::uint64_t recv_ticks = tb.now_ticks();
+    const std::uint64_t kern_ns =
+        kernel_timestamp_ns(msgs_[i].msg_hdr, hw_stamped_, sw_stamped_);
+    const bool have_kernel = kern_ns != 0;
     Datagram d;
-    d.recv_ts_ns = ts;  // one stamp per batch: all datagrams arrive together
+    d.recv_ts_ticks = recv_ticks;
+    d.hw_ts_ticks = have_kernel ? tb.realtime_ns_to_ticks(kern_ns) : recv_ticks;
     d.length = static_cast<std::uint32_t>(len);
     std::memcpy(d.bytes.data(), iovs_[i].iov_base, len);
+    if (have_kernel && recorder != nullptr) {
+      recorder->record(LatencyStage::WireToUserspace,
+                       tb.delta_ns(recv_ticks, d.hw_ts_ticks));
+    }
     ring.try_push(d);
   }
   return true;
 #else
   // Fallback for platforms without recvmmsg: recvmsg() up to `batch` times.
-  // Truncation is detected via MSG_TRUNC in msg_flags (recv() with MSG_TRUNC
-  // does not report the real length on all platforms).
+  // Truncation is detected via MSG_TRUNC in msg_flags.
   std::uint8_t* buf = buf_.get();
   bool any = false;
   const std::uint32_t max = cfg_.batch ? cfg_.batch : 1;
   for (std::uint32_t i = 0; i < max; ++i) {
+    msg_.msg_controllen = cmsg_len_;  // reset each call
     const ssize_t r = ::recvmsg(fd_, &msg_, MSG_DONTWAIT);
     if (r < 0) {
       const int e = errno;
@@ -265,10 +365,18 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring) noexcept {
       oversize_.fetch_add(1, std::memory_order_relaxed);
       continue;
     }
+    const std::uint64_t recv_ticks = tb.now_ticks();
+    const std::uint64_t kern_ns = kernel_timestamp_ns(msg_, hw_stamped_, sw_stamped_);
+    const bool have_kernel = kern_ns != 0;
     Datagram d;
-    d.recv_ts_ns = ts;
+    d.recv_ts_ticks = recv_ticks;
+    d.hw_ts_ticks = have_kernel ? tb.realtime_ns_to_ticks(kern_ns) : recv_ticks;
     d.length = static_cast<std::uint32_t>(r);
     std::memcpy(d.bytes.data(), buf, static_cast<std::size_t>(r));
+    if (have_kernel && recorder != nullptr) {
+      recorder->record(LatencyStage::WireToUserspace,
+                       tb.delta_ns(recv_ticks, d.hw_ts_ticks));
+    }
     ring.try_push(d);
     any = true;
   }
@@ -276,7 +384,7 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring) noexcept {
 #endif
 }
 
-void Receiver::recv_loop(SpscRing<Datagram>& ring) {
+void Receiver::recv_loop(SpscRing<Datagram>& ring, LatencyRecorder* recorder) {
   while (!stop_.load(std::memory_order_relaxed)) {
 #if defined(__linux__)
     if (mode_ == RecvMode::Epoll) {
@@ -293,7 +401,7 @@ void Receiver::recv_loop(SpscRing<Datagram>& ring) {
     // Busy-poll: spin on drain_once. Epoll: drain until EAGAIN (edge
     // triggered), capped so one hot fd cannot starve shutdown checks.
     for (int round = 0; round < kMaxDrainRounds; ++round) {
-      if (!drain_once(ring)) break;
+      if (!drain_once(ring, recorder)) break;
     }
   }
 }
