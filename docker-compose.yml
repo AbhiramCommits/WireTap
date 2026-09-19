@@ -1,0 +1,110 @@
+# WireTap demo stack: feed generator -> handler (receive/decode/archive) ->
+# dashboard (FastAPI + React), plus a TCP retransmission server for gap
+# recovery.
+#
+# Host networking keeps UDP multicast on the real interfaces (no NAT).
+# The archive directory and the unix datagram socket are shared with the
+# dashboard through a bind mount.
+
+services:
+  retransmit:
+    image: python:3.12-slim
+    network_mode: host
+    working_dir: /wt
+    volumes:
+      - .:/wt:ro
+    command: python3 tools/retransmit_server.py --capture /wt/demo/capture_full.bin --port 38899
+    depends_on:
+      demo-init:
+        condition: service_completed_successfully
+
+  feedgen:
+    image: python:3.12-slim
+    network_mode: host
+    working_dir: /wt
+    volumes:
+      - .:/wt:ro
+    command:
+      - python3
+      - tools/feedgen.py
+      - --mode
+      - udp
+      - --iface
+      - ${WIRETAP_IFACE:-lo}
+      - --group
+      - ${WIRETAP_GROUP:-239.1.1.1}
+      - --port
+      - ${WIRETAP_PORT:-31337}
+      - --seed
+      - ${WIRETAP_SEED:-7}
+      - --rate
+      - ${WIRETAP_RATE:-100000}
+      - --duration
+      - ${WIRETAP_DURATION:-300}
+      - --drop-rate
+      - ${WIRETAP_DROP_RATE:-0.1}
+    depends_on:
+      - handler
+
+  handler:
+    build: .
+    network_mode: host
+    command:
+      - --group
+      - ${WIRETAP_GROUP:-239.1.1.1}
+      - --port
+      - ${WIRETAP_PORT:-31337}
+      - --iface
+      - ${WIRETAP_IFACE:-lo}
+      - --mode
+      - ${WIRETAP_MODE:-busy}
+      - --archive-dir
+      - /wt/demo/archive
+      - --dash-socket
+      - /wt/demo/wiretap-dash.sock
+      - --recover
+      - 127.0.0.1:38899
+      - --recover-timeout-ms
+      - "2000"
+      - --duration
+      - ${WIRETAP_DURATION:-300}
+    volumes:
+      - .:/wt
+    depends_on:
+      - retransmit
+
+  dashboard:
+    build: tools/dashboard
+    ports:
+      - "8088:8000"
+    environment:
+      WIRETAP_SOCKET: /wt/demo/wiretap-dash.sock
+      WIRETAP_ARCHIVE: /wt/demo/archive
+    volumes:
+      - .:/wt  # archive + unix datagram socket shared via the bind mount
+    command: uvicorn backend:app --host 0.0.0.0 --port 8000
+    depends_on:
+      - handler
+
+  # One-shot: generates the full (zero-drop) capture the retransmission
+  # server serves, with the same seed/message count as the live feed.
+  demo-init:
+    image: python:3.12-slim
+    network_mode: host
+    working_dir: /wt
+    volumes:
+      - .:/wt
+    environment:
+      WIRETAP_RATE: ${WIRETAP_RATE:-100000}
+      WIRETAP_DURATION: ${WIRETAP_DURATION:-300}
+      WIRETAP_SEED: ${WIRETAP_SEED:-7}
+    command:
+      - bash
+      - -c
+      - |
+        mkdir -p /wt/demo
+        MSGS=$$(( WIRETAP_RATE * WIRETAP_DURATION ))
+        echo "generating $$MSGS-message reference capture"
+        python3 tools/feedgen.py --out /wt/demo/capture_full.bin \
+          --seed $$WIRETAP_SEED --symbols 20 --messages $$MSGS
+        echo "reference capture ready"

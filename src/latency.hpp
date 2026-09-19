@@ -48,6 +48,10 @@ class LatencyRecorder {
   // thread per instance.
   void record(LatencyStage stage, std::uint64_t ns) noexcept;
 
+  // Empties all stages (used for per-second rolling recorders). Report-time
+  // only: never call while record() is running on the same instance.
+  void reset() noexcept;
+
   // Merges `other` into this recorder. Report-time only (never concurrent
   // with record()).
   void merge(const LatencyRecorder& other) noexcept;

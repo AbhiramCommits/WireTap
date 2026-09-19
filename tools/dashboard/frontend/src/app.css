@@ -1,0 +1,95 @@
+:root {
+  color-scheme: dark;
+  font-family: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  background: #0d1117;
+  color: #e6edf3;
+}
+body { margin: 0; }
+#root { display: flex; flex-direction: column; height: 100vh; }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #21262d;
+  font-size: 14px;
+}
+.header .title { font-weight: 700; letter-spacing: 0.08em; }
+.header select {
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: inherit;
+}
+.header .stat { color: #8b949e; }
+.header .stat b { color: #e6edf3; font-weight: 600; }
+.header .live-dot { color: #3fb950; }
+.header .live-dot.off { color: #f85149; }
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+.panel {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.panel h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #8b949e;
+}
+.panel .body { flex: 1; min-height: 0; }
+
+.book-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  height: 100%;
+  overflow-y: auto;
+}
+.book-side h3 { margin: 0 0 4px; font-size: 11px; color: #8b949e; }
+.book-row {
+  display: grid;
+  grid-template-columns: 90px 70px 1fr;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  padding: 1px 0;
+  position: relative;
+}
+.book-row .bar {
+  position: absolute;
+  right: 0;
+  top: 1px;
+  bottom: 1px;
+  border-radius: 2px;
+  opacity: 0.25;
+}
+.book-row.bid .bar { background: #3fb950; }
+.book-row.ask .bar { background: #f85149; }
+.book-row .price { text-align: right; font-variant-numeric: tabular-nums; }
+.book-row .qty { text-align: right; font-variant-numeric: tabular-nums; color: #c9d1d9; }
+.book-row .px { z-index: 1; text-align: right; font-variant-numeric: tabular-nums; color: #8b949e; }
+
+.gap-row { font-size: 12px; padding: 3px 0; border-bottom: 1px solid #21262d; }
+.gap-row .healed { color: #3fb950; }
+.gap-row .lost { color: #f85149; }
+
+.scroll { overflow-y: auto; }

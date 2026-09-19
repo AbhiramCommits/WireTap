@@ -73,6 +73,13 @@ void LatencyRecorder::record(LatencyStage stage, std::uint64_t ns) noexcept {
   ::hdr_record_value(h, static_cast<std::int64_t>(ns >= 1 ? ns : 1));
 }
 
+void LatencyRecorder::reset() noexcept {
+  for (auto& h : hists_) {
+    if (h != nullptr) free_histogram(h);
+    h = make_histogram();
+  }
+}
+
 void LatencyRecorder::merge(const LatencyRecorder& other) noexcept {
   for (std::size_t i = 0; i < hists_.size(); ++i) {
     if (hists_[i] != nullptr && other.hists_[i] != nullptr) {

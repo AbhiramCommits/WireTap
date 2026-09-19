@@ -107,6 +107,13 @@ class GapTracker {
   bool settled() const noexcept { return !gap_active_ && buffered_.empty() && ready_.empty(); }
   const std::vector<GapEvent>& events() const noexcept { return events_; }
 
+  // Number of events that are no longer active (final disposition known).
+  // Callers that forward events elsewhere track their own cursor and copy
+  // events in [cursor, closed_event_count()) — decode-thread only.
+  std::size_t closed_event_count() const noexcept {
+    return events_.size() - (gap_active_ ? 1u : 0u);
+  }
+
   // Prints time-to-heal percentiles to `out` and writes
   // {dir}/{prefix}-heal.hgrm.
   void write_heal_report(const std::string& dir, const std::string& prefix,

@@ -36,6 +36,10 @@
 #include "wiretap/itch.hpp"
 #include "wiretap/spsc_ring.hpp"
 
+#if WIRETAP_HAVE_ARROW
+#include "archive_writer.hpp"
+#endif
+
 namespace {
 
 std::atomic<bool> g_stop{false};
@@ -61,6 +65,9 @@ struct Options {
   std::uint64_t recover_timeout_ms = 1000;
   std::string latency_dir = ".";
   std::string latency_prefix = "wiretap";
+  std::string archive_dir;          // Parquet archive root ("" = off)
+  std::size_t archive_ring_size = 1u << 20;
+  std::string dash_socket;          // unix dgram path for dashboard ("" = off)
 };
 
 void usage(const char* argv0) {
@@ -83,7 +90,10 @@ void usage(const char* argv0) {
                "  --reorder-window N    out-of-order packet buffer (default 1024)\n"
                "  --recover-timeout-ms N  declare a gap permanently lost after N ms (default 1000)\n"
                "  --latency-dir DIR     write .hgrm histograms + JSON summary here (default .)\n"
-               "  --latency-prefix STR  report file prefix (default wiretap)\n",
+               "  --latency-prefix STR  report file prefix (default wiretap)\n"
+               "  --archive-dir DIR     write Parquet archive (book/stats/depth/gaps) here\n"
+               "  --archive-ring-size N SPSC ring slots for archive updates (default 1M)\n"
+               "  --dash-socket PATH    publish 10 Hz live snapshots to a unix dgram socket\n",
                argv0);
 }
 
@@ -172,6 +182,18 @@ bool parse_args(int argc, char** argv, Options& o) {
       const char* v = next("--latency-prefix");
       if (!v) return false;
       o.latency_prefix = v;
+    } else if (a == "--archive-dir") {
+      const char* v = next("--archive-dir");
+      if (!v) return false;
+      o.archive_dir = v;
+    } else if (a == "--archive-ring-size") {
+      const char* v = next("--archive-ring-size");
+      if (!v) return false;
+      o.archive_ring_size = static_cast<std::size_t>(std::strtoull(v, nullptr, 10));
+    } else if (a == "--dash-socket") {
+      const char* v = next("--dash-socket");
+      if (!v) return false;
+      o.dash_socket = v;
     } else if (a == "-h" || a == "--help") {
       usage(argv[0]);
       return false;
@@ -182,6 +204,14 @@ bool parse_args(int argc, char** argv, Options& o) {
     }
   }
   if (o.reorder_window == 0) o.reorder_window = 1;
+#if !WIRETAP_HAVE_ARROW
+  if (!o.archive_dir.empty() || !o.dash_socket.empty()) {
+    std::fprintf(stderr,
+                 "wiretap_recv: --archive-dir/--dash-socket require Apache "
+                 "Arrow support (build with libarrow-dev/libparquet-dev)\n");
+    return false;
+  }
+#endif
   return true;
 }
 
@@ -195,12 +225,14 @@ struct Counters {
   std::atomic<std::uint64_t> packets_decoded{0};
   std::atomic<std::uint64_t> messages_decoded{0};
   std::atomic<std::uint64_t> decode_errors{0};
+  std::atomic<std::uint64_t> archive_drops{0};  // decode-side pushes rejected
 };
 
 // Decode thread: pop raw datagrams (live ring + recovered ring), track
-// sequence numbers, apply to the book in order, record latency stages.
-// Exits when the producers are gone, the recovered ring is drained, and the
-// tracker is flushed.
+// sequence numbers, apply to the book in order, record latency stages, and
+// hand everything downstream: BookUpdates to the archive ring (try_push only,
+// never blocking), per-second aggregate stats to the stats ring, and closed
+// gap events to the gap ring.
 void decode_loop(wiretap::SpscRing<wiretap::Datagram>& main_ring,
                  wiretap::SpscRing<wiretap::Datagram>& recovered_ring,
                  wiretap::SpscRing<wiretap::GapRequest>& gap_ring,
@@ -208,12 +240,53 @@ void decode_loop(wiretap::SpscRing<wiretap::Datagram>& main_ring,
                  wiretap::BookBuilder* book, wiretap::Decoder& dec,
                  wiretap::LatencyRecorder& lat,
                  const std::atomic<bool>& rx_running,
-                 const std::atomic<bool>& recovery_done, Counters& c) {
+                 const std::atomic<bool>& recovery_done, Counters& c,
+                 wiretap::SpscRing<wiretap::BookUpdate>* archive_ring,
+                 wiretap::SpscRing<wiretap::SecondStats>* stats_ring,
+                 wiretap::SpscRing<wiretap::GapEvent>* gap_event_ring) {
   wiretap::set_current_thread_name("wiretap-dec");
   wiretap::TimeBase& tb = wiretap::TimeBase::instance();
   wiretap::Datagram d;
   std::vector<wiretap::BookUpdate> updates;
   updates.reserve(256);  // no allocation on the decode path after warmup
+
+  // Per-second rolling latency + stats production (cold: once per second).
+  wiretap::LatencyRecorder sec_lat;
+  std::uint64_t last_sec = 0;
+  std::uint64_t sec_start_messages = 0;
+  std::uint64_t sec_start_packets = 0;
+  std::size_t gaps_reported = 0;
+
+  auto push_second_stats = [&](std::uint64_t sec) {
+    if (stats_ring == nullptr) return;
+    wiretap::SecondStats s{};
+    s.sec = sec;
+    s.messages = c.messages_decoded.load(std::memory_order_relaxed) - sec_start_messages;
+    s.packets = c.packets_decoded.load(std::memory_order_relaxed) - sec_start_packets;
+    s.ring_drops = main_ring.drops();
+    s.archive_drops = c.archive_drops.load(std::memory_order_relaxed);
+    s.gaps_detected = tracker.gaps_detected();
+    s.gaps_healed = tracker.gaps_healed();
+    s.permanently_lost = tracker.permanently_lost();
+    s.recovered = tracker.recovered_packets();
+    auto fill = [&](wiretap::LatencyStage st, wiretap::LatencyPercentiles& p) {
+      p.count = sec_lat.count(st);
+      p.p50 = sec_lat.value_at(st, 50.0);
+      p.p90 = sec_lat.value_at(st, 90.0);
+      p.p99 = sec_lat.value_at(st, 99.0);
+      p.p999 = sec_lat.value_at(st, 99.9);
+      p.p9999 = sec_lat.value_at(st, 99.99);
+      p.max = sec_lat.max_value(st);
+    };
+    fill(wiretap::LatencyStage::QueueDelay, s.queue_delay);
+    fill(wiretap::LatencyStage::DecodeTime, s.decode_time);
+    fill(wiretap::LatencyStage::WireToBook, s.wire_to_book);
+    s.bucket_count = wiretap::dump_histogram_buckets(
+        sec_lat.histogram(wiretap::LatencyStage::WireToBook), s.buckets,
+        static_cast<std::uint32_t>(wiretap::kMaxHistogramBuckets));
+    stats_ring->try_push(s);  // full => drop the sample, never stall
+    sec_lat.reset();
+  };
 
   auto apply_packet = [&](const std::uint8_t* p, std::size_t n,
                           std::uint64_t recv_ticks, std::uint64_t hw_ticks) {
@@ -228,13 +301,43 @@ void decode_loop(wiretap::SpscRing<wiretap::Datagram>& main_ring,
       return;
     }
     c.messages_decoded.fetch_add(r.updates_decoded, std::memory_order_relaxed);
-    if (book != nullptr) {
-      for (const auto& u : updates) book->apply(u);
+    for (const auto& u : updates) {
+      if (book != nullptr) book->apply(u);
+      if (archive_ring != nullptr) {
+        if (!archive_ring->try_push(u)) {
+          c.archive_drops.fetch_add(1, std::memory_order_relaxed);
+        }
+      }
     }
     const std::uint64_t t2 = tb.now_ticks();
     lat.record(wiretap::LatencyStage::QueueDelay, tb.delta_ns(t0, recv_ticks));
     lat.record(wiretap::LatencyStage::DecodeTime, tb.delta_ns(t1, t0));
     lat.record(wiretap::LatencyStage::WireToBook, tb.delta_ns(t2, hw_ticks));
+    sec_lat.record(wiretap::LatencyStage::QueueDelay, tb.delta_ns(t0, recv_ticks));
+    sec_lat.record(wiretap::LatencyStage::DecodeTime, tb.delta_ns(t1, t0));
+    sec_lat.record(wiretap::LatencyStage::WireToBook, tb.delta_ns(t2, hw_ticks));
+
+    // Wall-clock second boundary: emit per-second stats.
+    const std::uint64_t sec = tb.ticks_to_realtime_ns(recv_ticks) / 1000000000ull;
+    if (last_sec == 0) {
+      last_sec = sec;
+      sec_start_messages = 0;
+      sec_start_packets = 0;
+    } else if (sec != last_sec) {
+      push_second_stats(sec);
+      last_sec = sec;
+      sec_start_messages = c.messages_decoded.load(std::memory_order_relaxed);
+      sec_start_packets = c.packets_decoded.load(std::memory_order_relaxed);
+    }
+  };
+
+  auto forward_gap_events = [&] {
+    if (gap_event_ring == nullptr) return;
+    const std::size_t closed = tracker.closed_event_count();
+    while (gaps_reported < closed) {
+      if (!gap_event_ring->try_push(tracker.events()[gaps_reported])) break;
+      ++gaps_reported;
+    }
   };
 
   auto drain_ready = [&] {
@@ -257,6 +360,7 @@ void decode_loop(wiretap::SpscRing<wiretap::Datagram>& main_ring,
       if (recovery_enabled) gap_ring.try_push(res.new_gap);
     }
     drain_ready();
+    forward_gap_events();
   };
 
   for (;;) {
@@ -270,15 +374,18 @@ void decode_loop(wiretap::SpscRing<wiretap::Datagram>& main_ring,
     }
     tracker.advance_time(tb.now_ticks());  // idle only: timeout skips
     drain_ready();
+    forward_gap_events();
     if (!rx_running.load(std::memory_order_acquire) &&
         recovery_done.load(std::memory_order_acquire)) {
       while (recovered_ring.try_pop(d)) process_datagram(d, true);
       tracker.flush(tb.now_ticks());
       drain_ready();
+      forward_gap_events();
       break;
     }
     std::this_thread::yield();
   }
+  push_second_stats(tb.ticks_to_realtime_ns(tb.now_ticks()) / 1000000000ull);
 }
 
 }  // namespace
@@ -351,10 +458,36 @@ int main(int argc, char** argv) {
   wiretap::LatencyRecorder rx_lat;   // receiver thread records wire_to_userspace
   wiretap::LatencyRecorder dec_lat;  // decode thread records the rest
 
+  // Data layer: decode thread -> archive thread via lock-free rings.
+  const bool archive_enabled = !o.archive_dir.empty() || !o.dash_socket.empty();
+#if WIRETAP_HAVE_ARROW
+  std::unique_ptr<wiretap::SpscRing<wiretap::BookUpdate>> archive_ring;
+  std::unique_ptr<wiretap::SpscRing<wiretap::SecondStats>> stats_ring;
+  std::unique_ptr<wiretap::SpscRing<wiretap::GapEvent>> gap_event_ring;
+  std::unique_ptr<wiretap::ArchiveWriter> archive_writer;
+  if (archive_enabled) {
+    archive_ring = std::make_unique<wiretap::SpscRing<wiretap::BookUpdate>>(
+        o.archive_ring_size == 0 ? 1 : o.archive_ring_size);
+    stats_ring = std::make_unique<wiretap::SpscRing<wiretap::SecondStats>>(120);
+    gap_event_ring = std::make_unique<wiretap::SpscRing<wiretap::GapEvent>>(1024);
+    archive_writer = std::make_unique<wiretap::ArchiveWriter>(o.archive_dir, o.dash_socket);
+    if (!archive_writer->ok()) {
+      std::fprintf(stderr, "wiretap_recv: %s\n", archive_writer->error().c_str());
+      return 1;
+    }
+    std::fprintf(stderr,
+                 "wiretap_recv: archive=%s dash_socket=%s archive_ring=%zu\n",
+                 o.archive_dir.empty() ? "off" : o.archive_dir.c_str(),
+                 o.dash_socket.empty() ? "off" : o.dash_socket.c_str(),
+                 archive_ring->capacity());
+  }
+#endif
+
   Counters c;
   std::atomic<bool> rx_running{true};
   std::atomic<bool> recovery_done{true};  // true when recovery is disabled
   std::atomic<bool> recovery_stop{false};
+  std::atomic<bool> archive_stop{false};
   std::unique_ptr<wiretap::RecoveryClient> recovery;
   if (recovery_enabled) {
     recovery = std::make_unique<wiretap::RecoveryClient>(recv_host, recv_port);
@@ -386,8 +519,19 @@ int main(int argc, char** argv) {
     if (o.decode_core >= 0) wiretap::pin_cpu(o.decode_core);
     if (o.sched_fifo) wiretap::set_fifo(o.fifo_priority, "decode");
     decode_loop(ring, recovered_ring, gap_ring, recovery_enabled, tracker,
-                book.get(), dec, dec_lat, rx_running, recovery_done, c);
+                book.get(), dec, dec_lat, rx_running, recovery_done, c,
+                archive_ring.get(), stats_ring.get(), gap_event_ring.get());
   });
+
+#if WIRETAP_HAVE_ARROW
+  std::thread archive_thread;
+  if (archive_enabled) {
+    archive_thread = std::thread([&] {
+      wiretap::set_current_thread_name("wiretap-archive");
+      archive_writer->run(*archive_ring, *stats_ring, *gap_event_ring, archive_stop);
+    });
+  }
+#endif
 
   std::uint64_t prev_rx = 0, prev_msgs = 0;
   const double t0 = now_s();
@@ -432,7 +576,8 @@ int main(int argc, char** argv) {
   }
 
   // Clean shutdown: stop the producer, stop recovery, let the decoder drain
-  // the rings and flush the reorder window.
+  // the rings and flush the reorder window, then let the archive writer drain
+  // and finalize its Parquet files.
   g_stop.store(true, std::memory_order_relaxed);
   rx.request_stop();
   rx_thread.join();
@@ -441,6 +586,12 @@ int main(int argc, char** argv) {
     recovery_thread.join();
   }
   decode_thread.join();
+#if WIRETAP_HAVE_ARROW
+  if (archive_thread.joinable()) {
+    archive_stop.store(true, std::memory_order_relaxed);
+    archive_thread.join();
+  }
+#endif
 
   const double elapsed = now_s() - t0;
   const std::uint64_t rx_total = rx.packets_received();
@@ -492,5 +643,24 @@ int main(int argc, char** argv) {
   report.merge(dec_lat);
   report.write_report(o.latency_dir, o.latency_prefix, stderr);
   tracker.write_heal_report(o.latency_dir, o.latency_prefix, stderr);
+
+#if WIRETAP_HAVE_ARROW
+  if (archive_writer) {
+    std::fprintf(stderr,
+                 "archive: updates %llu | stats %llu | depth %llu | gaps %llu | "
+                 "archive ring drops %llu | snapshots %llu (publish errors %llu)\n",
+                 static_cast<unsigned long long>(archive_writer->updates_written()),
+                 static_cast<unsigned long long>(archive_writer->stats_written()),
+                 static_cast<unsigned long long>(archive_writer->depth_written()),
+                 static_cast<unsigned long long>(archive_writer->gaps_written()),
+                 static_cast<unsigned long long>(
+                     c.archive_drops.load(std::memory_order_relaxed)),
+                 static_cast<unsigned long long>(archive_writer->snapshots_published()),
+                 static_cast<unsigned long long>(archive_writer->publish_errors()));
+    if (!archive_writer->ok()) {
+      std::fprintf(stderr, "archive: error: %s\n", archive_writer->error().c_str());
+    }
+  }
+#endif
   return 0;
 }

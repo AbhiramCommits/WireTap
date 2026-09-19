@@ -8,6 +8,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Apache Arrow (archive writer)
+        run: |
+          wget -q https://apache.jfrog.io/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-$(. /etc/os-release && echo $VERSION_CODENAME).deb
+          sudo apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-*.deb
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libarrow-dev libparquet-dev
+
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -42,4 +49,8 @@ jobs:
         run: ruff check tools/
 
       - name: Compile check
-        run: python3 -m py_compile tools/feedgen.py
+        run: |
+          python3 -m py_compile tools/feedgen.py tools/bookref.py \
+            tools/retransmit_server.py tools/analytics.py \
+            tools/dashboard/backend.py
+          bash -n tools/check_nic_timestamping.sh scripts/demo.sh

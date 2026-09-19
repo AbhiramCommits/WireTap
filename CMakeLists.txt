@@ -63,6 +63,31 @@ target_link_libraries(wiretap-dump PRIVATE wiretap)
 add_executable(wiretap_recv src/wiretap_recv.cpp)
 target_link_libraries(wiretap_recv PRIVATE wiretap)
 
+# -- Apache Arrow / Parquet archive support (optional) ----------------------
+# The archive writer needs Arrow >= 8. If Arrow is not found, the handler
+# builds without the archive/dashboard publishing (data layer disabled).
+option(WIRETAP_BUILD_ARCHIVE "Build the Parquet archive writer (needs Arrow)" ON)
+if(WIRETAP_BUILD_ARCHIVE)
+  # Prefer a Homebrew Arrow on macOS over any conda-shipped one.
+  if(APPLE AND EXISTS "/opt/homebrew/lib/cmake/Arrow/ArrowConfig.cmake")
+    set(Arrow_DIR "/opt/homebrew/lib/cmake/Arrow")
+    set(Parquet_DIR "/opt/homebrew/lib/cmake/Parquet")
+  endif()
+  find_package(Arrow CONFIG QUIET)
+  if(Arrow_FOUND)
+    find_package(Parquet CONFIG QUIET)
+  endif()
+  if(Arrow_FOUND AND Parquet_FOUND)
+    message(STATUS "Apache Arrow found: archive writer enabled")
+    target_sources(wiretap PRIVATE src/archive_writer.cpp)
+    target_compile_definitions(wiretap PUBLIC WIRETAP_HAVE_ARROW=1)
+    target_link_libraries(wiretap PUBLIC Arrow::arrow_shared Parquet::parquet_shared)
+  else()
+    message(WARNING "Apache Arrow/Parquet not found: archive writer disabled "
+                    "(install libarrow-dev libparquet-dev, or `brew install apache-arrow`)")
+  endif()
+endif()
+
 if(WIRETAP_BUILD_TESTS)
   enable_testing()
   FetchContent_Declare(googletest

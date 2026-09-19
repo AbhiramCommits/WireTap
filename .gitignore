@@ -5,3 +5,13 @@ build-*/
 __pycache__/
 .cache/
 compile_commands.json
+
+# dashboard / demo artifacts
+demo/
+tools/dashboard/frontend/node_modules/
+tools/dashboard/frontend/dist/
+*.tsbuildinfo
+
+# latency reports written to the working directory
+*.hgrm
+wiretap-latency.json

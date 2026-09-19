@@ -18,11 +18,21 @@
 
 #if defined(__linux__)
 #include <linux/net_tstamp.h>  // SOF_TIMESTAMPING_*
-#include <linux/time.h>        // struct scm_timestamping
 #include <net/if.h>            // if_nametoindex
 #include <sys/epoll.h>
 #else
 #include <sys/ioctl.h>  // SIOCGIFADDR
+#endif
+
+#if defined(__linux__)
+// struct scm_timestamping is defined in the uapi <linux/time.h>, which
+// clashes with libc time headers; mirror the stable kernel ABI instead
+// (3 x struct timespec, see Documentation/networking/timestamping.rst).
+namespace {
+struct scm_timestamping {
+  struct timespec ts[3];
+};
+}  // namespace
 #endif
 
 #include "latency.hpp"
@@ -65,10 +75,10 @@ std::string iface_ipv4(const std::string& name) {
 
 // Extracts the kernel timestamp from a received msghdr's control data.
 // Returns 0 when absent. Counts whether the stamp was hardware or software.
-std::uint64_t kernel_timestamp_ns(const struct msghdr& mh,
+std::uint64_t kernel_timestamp_ns(struct msghdr& mh,
                                   [[maybe_unused]] std::atomic<std::uint64_t>& hw_count,
                                   [[maybe_unused]] std::atomic<std::uint64_t>& sw_count) noexcept {
-  for (const struct cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr;
+  for (struct cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr;
        cmsg = CMSG_NXTHDR(&mh, cmsg)) {
     if (cmsg->cmsg_level != SOL_SOCKET) continue;
 #if defined(__linux__)

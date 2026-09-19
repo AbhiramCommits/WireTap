@@ -1,0 +1,9 @@
+build/
+build-*/
+.git/
+tools/dashboard/frontend/node_modules/
+tools/dashboard/frontend/dist/
+demo/
+archive/
+*.bin
+__pycache__/
