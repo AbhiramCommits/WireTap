@@ -78,6 +78,7 @@ void decode_message(char type, const std::uint8_t* body, BookUpdate& u) noexcept
       const auto m = itch::load_unaligned<itch::OrderReplace>(body);
       u.action = Action::Replaced;
       u.order_ref = m.new_ref_number();
+      u.order_ref_old = m.original_ref_number();
       u.qty = m.new_share_qty();
       u.price_ticks = static_cast<std::int64_t>(m.new_price_ticks());
       return;

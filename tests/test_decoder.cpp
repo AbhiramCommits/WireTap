@@ -91,6 +91,7 @@ TEST(Decoder, RoundTripsEveryMessageType) {
     const auto& u = out[6];  // OrderReplace
     EXPECT_EQ(u.action, wt::Action::Replaced);
     EXPECT_EQ(u.order_ref, 0xAAAAAAAA55555555ull);
+    EXPECT_EQ(u.order_ref_old, 0x0102030405060708ull);
     EXPECT_EQ(u.qty, 120u);
     EXPECT_EQ(u.price_ticks, 1234600);
   }

@@ -119,8 +119,8 @@ class Feed:
 
         Returns (type, manifest_row, args) where `args` are the arguments for
         the length-prefixed struct pack (length, type, fields...) and
-        manifest_row holds (symbol, side, price_ticks, qty, order_ref, action,
-        exchange_ts_ns).
+        manifest_row holds (symbol, side, price_ticks, qty, order_ref,
+        order_ref_old, action, exchange_ts_ns).
         """
         bits = self._bits
         orders = self.orders
@@ -132,7 +132,7 @@ class Feed:
             code = b"O" if i == 0 else b"E"  # start / end of messages
             ts = ((i + 1) * 123_456_789) % NS_PER_DAY
             ts6 = struct.pack(">Q", ts)[2:]
-            return ("S", ("", "-", 0, 0, 0, "SYSTEM_EVENT", ts),
+            return ("S", ("", "-", 0, 0, 0, 0, "SYSTEM_EVENT", ts),
                     (8, b"S", ts6, code))
 
         if not open_:
@@ -163,9 +163,9 @@ class Feed:
             self.next_ref = ref + 1
             add(Order(ref, symbol, side, qty, price))
             if typ == "A":
-                return ("A", (symbol, side, price, qty, ref, "ADDED", 0),
+                return ("A", (symbol, side, price, qty, ref, 0, "ADDED", 0),
                         (26, b"A", ref, _SIDE[side], qty, symbol.encode(), price))
-            return ("F", (symbol, side, price, qty, ref, "ADDED", 0),
+            return ("F", (symbol, side, price, qty, ref, 0, "ADDED", 0),
                     (30, b"F", ref, _SIDE[side], qty, symbol.encode(), price,
                      b"WIRE"))
         if typ == "E":
@@ -176,7 +176,7 @@ class Feed:
             order.qty -= qty
             if order.qty == 0:
                 remove(order)
-            return ("E", ("", "-", 0, qty, order.ref, "EXECUTED", 0),
+            return ("E", ("", "-", 0, qty, order.ref, 0, "EXECUTED", 0),
                     (21, b"E", order.ref, qty, match))
         if typ == "X":
             order = orders[open_[bits(32) % len(open_)]]
@@ -184,12 +184,12 @@ class Feed:
             order.qty -= qty
             if order.qty == 0:
                 remove(order)
-            return ("X", ("", "-", 0, qty, order.ref, "CANCELED", 0),
+            return ("X", ("", "-", 0, qty, order.ref, 0, "CANCELED", 0),
                     (13, b"X", order.ref, qty))
         if typ == "D":
             order = orders[open_[bits(32) % len(open_)]]
             remove(order)
-            return ("D", ("", "-", 0, 0, order.ref, "DELETED", 0),
+            return ("D", ("", "-", 0, 0, order.ref, 0, "DELETED", 0),
                     (9, b"D", order.ref))
         if typ == "U":
             order = orders[open_[bits(32) % len(open_)]]
@@ -199,7 +199,7 @@ class Feed:
             self.next_ref = new_ref + 1
             remove(order)
             add(Order(new_ref, order.symbol, order.side, new_qty, new_price))
-            return ("U", ("", "-", new_price, new_qty, new_ref, "REPLACED", 0),
+            return ("U", ("", "-", new_price, new_qty, new_ref, order.ref, "REPLACED", 0),
                     (25, b"U", order.ref, new_ref, new_qty, new_price))
         # typ == "P": full non-displayed execution
         order = orders[open_[bits(32) % len(open_)]]
@@ -207,7 +207,7 @@ class Feed:
         self.next_match = match + 1
         remove(order)
         return ("P", (order.symbol, order.side, order.price, order.qty,
-                      order.ref, "EXECUTED", 0),
+                      order.ref, 0, "EXECUTED", 0),
                 (34, b"P", order.ref, _SIDE[order.side], order.qty,
                  order.symbol.encode(), order.price, match))
 
@@ -217,9 +217,9 @@ class Feed:
         """Emit `total` messages through `sink` (obj with .write(pkt)/.flush()).
 
         `manifest` is an optional text file receiving one TSV row per emitted
-        update: seq, type, symbol, side, price_ticks, qty, order_ref, action,
-        exchange_ts_ns. Rows are only written for packets actually emitted
-        (dropped packets stay out).
+        update: seq, type, symbol, side, price_ticks, qty, order_ref,
+        order_ref_old, action, exchange_ts_ns. Rows are only written for
+        packets actually emitted (dropped packets stay out).
         """
         capacity = HEADER_LEN + self.mpp * (LEN_FIELD + MAX_MSG_LEN)
         buf = bytearray(capacity)
@@ -353,7 +353,7 @@ def parse_args(argv=None):
                    help="capture file for --mode file (default: %(default)s)")
     p.add_argument("--manifest",
                    help="write a TSV manifest of decoded updates for "
-                        "round-trip testing")
+                        "round-trip testing (10 columns, incl. old ref)")
     p.add_argument("--group", default=DEFAULT_GROUP, help="multicast group")
     p.add_argument("--port", type=int, default=DEFAULT_PORT,
                    help="UDP port (default: %(default)s)")

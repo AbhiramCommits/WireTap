@@ -58,7 +58,7 @@ Each message maps to one `wiretap::BookUpdate` (see
 | E, P | Executed          |
 | X    | Canceled          |
 | D    | Deleted           |
-| U    | Replaced (order_ref = new ref) |
+| U    | Replaced (`order_ref` = new ref, `order_ref_old` = original ref) |
 | S    | SystemEvent (exchange_ts_ns set) |
 
 Fields a message does not carry (e.g. symbol on `D`/`U`/`S`) are zeroed.

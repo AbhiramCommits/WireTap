@@ -15,11 +15,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -march=native")
 endif()
 
-add_library(wiretap src/decoder.cpp)
+find_package(Threads REQUIRED)
+
+add_library(wiretap
+  src/decoder.cpp
+  src/book_builder.cpp
+  src/receiver.cpp)
 target_include_directories(wiretap PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_options(wiretap PUBLIC -Wall -Wextra -Wpedantic)
+target_link_libraries(wiretap PUBLIC Threads::Threads)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_compile_definitions(wiretap PUBLIC _GNU_SOURCE)
+endif()
 
 if(WIRETAP_SANITIZE)
   target_compile_options(wiretap PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -28,6 +37,9 @@ endif()
 
 add_executable(wiretap-dump src/main.cpp)
 target_link_libraries(wiretap-dump PRIVATE wiretap)
+
+add_executable(wiretap_recv src/wiretap_recv.cpp)
+target_link_libraries(wiretap_recv PRIVATE wiretap)
 
 if(WIRETAP_BUILD_TESTS)
   enable_testing()

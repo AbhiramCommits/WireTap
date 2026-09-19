@@ -29,6 +29,7 @@ struct ExpectedUpdate {
   std::int64_t price = 0;
   std::uint32_t qty = 0;
   std::uint64_t ref = 0;
+  std::uint64_t old_ref = 0;
   std::string action;
   std::uint64_t ts = 0;
 };
@@ -49,7 +50,7 @@ bool parse_row(const std::string& line, ExpectedUpdate& e) {
   std::vector<std::string> fields;
   std::string tok;
   while (std::getline(ss, tok, '\t')) fields.push_back(tok);
-  if (fields.size() != 9) return false;
+  if (fields.size() != 10) return false;
   try {
     e.seq = std::stoull(fields[0]);
     e.type = fields[1].at(0);
@@ -58,8 +59,9 @@ bool parse_row(const std::string& line, ExpectedUpdate& e) {
     e.price = std::stoll(fields[4]);
     e.qty = static_cast<std::uint32_t>(std::stoul(fields[5]));
     e.ref = std::stoull(fields[6]);
-    e.action = fields[7];
-    e.ts = std::stoull(fields[8]);
+    e.old_ref = std::stoull(fields[7]);
+    e.action = fields[8];
+    e.ts = std::stoull(fields[9]);
   } catch (...) {
     return false;
   }
@@ -165,6 +167,7 @@ TEST(RoundTrip, PythonEncodeMatchesCppDecode) {
       EXPECT_EQ(u.price_ticks, e.price) << "manifest row " << row;
       EXPECT_EQ(u.qty, e.qty) << "manifest row " << row;
       EXPECT_EQ(u.order_ref, e.ref) << "manifest row " << row;
+      EXPECT_EQ(u.order_ref_old, e.old_ref) << "manifest row " << row;
       EXPECT_EQ(u.exchange_ts_ns, e.ts) << "manifest row " << row;
       ++row;
     }

@@ -61,7 +61,8 @@ struct BookUpdate {
   Side side = Side::Unknown;  // 'B'/'S'
   std::int64_t price_ticks = 0;  // raw ticks; 4 implied decimal places
   std::uint32_t qty = 0;
-  std::uint64_t order_ref = 0;
+  std::uint64_t order_ref = 0;      // 'U': the NEW order reference
+  std::uint64_t order_ref_old = 0;  // 'U': the ORIGINAL order reference
   Action action = Action::None;
   std::uint64_t exchange_ts_ns = 0;  // only SystemEvent carries a timestamp in this subset
   std::uint64_t recv_ts_ns = 0;      // set by the decoder from its configured clock
