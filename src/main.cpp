@@ -46,17 +46,19 @@ int main(int argc, char** argv) {
       return 1;
     }
     ++packets;
-    if (first_seq == 0) first_seq = r.sequence_number;
-    if (last_seq != 0 && r.sequence_number != last_seq + 1) ++gaps;
+    if (first_seq == 0)
+      first_seq = r.sequence_number;
+    if (last_seq != 0 && r.sequence_number != last_seq + 1)
+      ++gaps;
     last_seq = r.sequence_number;
     updates += upd.size();
-    for (const auto& u : upd) ++actions[static_cast<std::size_t>(u.action)];
+    for (const auto& u : upd)
+      ++actions[static_cast<std::size_t>(u.action)];
     off += plen;
   }
 
   std::printf("packets:      %zu\n", packets);
-  std::printf("sequence:     %llu .. %llu (%zu gaps)\n",
-              static_cast<unsigned long long>(first_seq),
+  std::printf("sequence:     %llu .. %llu (%zu gaps)\n", static_cast<unsigned long long>(first_seq),
               static_cast<unsigned long long>(last_seq), gaps);
   std::printf("updates:      %zu\n", updates);
   for (std::size_t i = 1; i < static_cast<std::size_t>(wiretap::Action::kCount); ++i) {

@@ -59,9 +59,9 @@ const char* timestamp_mechanism_name(TimestampMechanism m) noexcept;
 struct ReceiverConfig {
   std::string group = "239.1.1.1";
   std::uint16_t port = 31337;
-  std::string iface;      // multicast interface name; "" = any
-  bool join_group = true; // false for unicast/loopback testing
-  int rcvbuf = 0;         // requested SO_RCVBUF; 0 = kernel default
+  std::string iface;         // multicast interface name; "" = any
+  bool join_group = true;    // false for unicast/loopback testing
+  int rcvbuf = 0;            // requested SO_RCVBUF; 0 = kernel default
   std::uint32_t batch = 32;  // recvmmsg batch size
 };
 
@@ -85,27 +85,23 @@ class Receiver {
   TimestampMechanism timestamp_mechanism() const noexcept { return ts_mech_; }
 
   // Per-datagram stamp counters (which tier actually delivered stamps).
-  std::uint64_t hw_stamped() const noexcept {
-    return hw_stamped_.load(std::memory_order_relaxed);
-  }
-  std::uint64_t sw_stamped() const noexcept {
-    return sw_stamped_.load(std::memory_order_relaxed);
-  }
+  std::uint64_t hw_stamped() const noexcept { return hw_stamped_.load(std::memory_order_relaxed); }
+  std::uint64_t sw_stamped() const noexcept { return sw_stamped_.load(std::memory_order_relaxed); }
 
   // Blocks until request_stop(). Pushes stamped datagrams into `ring` and
-  // records wire_to_userspace into `recorder` (may be null). try_push
-  // failures are counted inside the ring's drop counter. Returns early on a
-  // fatal socket error (see last_error()).
-  void recv_loop(SpscRing<Datagram>& ring, LatencyRecorder* recorder = nullptr);
+  // records wire_to_userspace into `recorder` (may be null; recording starts
+  // only once `now_ticks() >= warmup_until_ticks`). try_push failures are
+  // counted inside the ring's drop counter. Returns early on a fatal socket
+  // error (see last_error()).
+  void recv_loop(SpscRing<Datagram>& ring, LatencyRecorder* recorder = nullptr,
+                 std::uint64_t warmup_until_ticks = 0);
 
   void request_stop() noexcept { stop_.store(true, std::memory_order_relaxed); }
 
   std::uint64_t packets_received() const noexcept {
     return packets_.load(std::memory_order_relaxed);
   }
-  std::uint64_t bytes_received() const noexcept {
-    return bytes_.load(std::memory_order_relaxed);
-  }
+  std::uint64_t bytes_received() const noexcept { return bytes_.load(std::memory_order_relaxed); }
   std::uint64_t oversize_dropped() const noexcept {
     return oversize_.load(std::memory_order_relaxed);
   }
@@ -114,7 +110,8 @@ class Receiver {
   // Reads up to `batch` datagrams (one recvmmsg call on Linux, a recvmsg loop
   // elsewhere) and pushes them into the ring. Returns false on EAGAIN (nothing
   // left to drain) or a fatal error.
-  bool drain_once(SpscRing<Datagram>& ring, LatencyRecorder* recorder) noexcept;
+  bool drain_once(SpscRing<Datagram>& ring, LatencyRecorder* recorder,
+                  std::uint64_t warmup_until_ticks) noexcept;
   void fail(std::string msg) { last_error_ = std::move(msg); }
 
   ReceiverConfig cfg_;
@@ -134,8 +131,8 @@ class Receiver {
   std::string last_error_;
 
 #if defined(__linux__)
-  std::vector<mmsghdr> msgs_;        // preallocated batch headers
-  std::vector<iovec> iovs_;          // one iovec per batch slot
+  std::vector<mmsghdr> msgs_;  // preallocated batch headers
+  std::vector<iovec> iovs_;    // one iovec per batch slot
   std::unique_ptr<std::uint8_t[]> batch_buf_;
   std::unique_ptr<std::uint8_t[]> ctrl_buf_;  // per-slot cmsg space
 #else

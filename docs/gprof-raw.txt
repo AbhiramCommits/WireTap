@@ -1,0 +1,421 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 50.40      3.82     3.82  2050931     0.00     0.00  wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long)
+ 34.17      6.41     2.59  1286546     0.00     0.00  wiretap::BookBuilder::remove_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long)
+  3.03      6.64     0.23  3198844     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&)
+  2.77      6.85     0.21      620     0.00     0.00  (anonymous namespace)::Options::~Options()
+  2.24      7.02     0.17        9     0.02     0.02  std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  2.11      7.18     0.16 17571246     0.00     0.00  wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long)
+  1.45      7.29     0.11                             _init
+  1.06      7.37     0.08  2080545     0.00     0.00  wiretap::BookBuilder::snapshot(char const*, unsigned long, wiretap::DepthSnapshot&) const
+  1.06      7.45     0.08  1280995     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&)
+  0.53      7.49     0.04  3211877     0.00     0.00  wiretap::BookBuilder::apply(wiretap::BookUpdate const&)
+  0.53      7.53     0.04    25064     0.00     0.00  wiretap::Decoder::decode_packet(unsigned char const*, unsigned long, std::vector<wiretap::BookUpdate, std::allocator<wiretap::BookUpdate> >&) const
+  0.26      7.55     0.02   486556     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, false, false>)
+  0.13      7.56     0.01    24953     0.00     0.00  (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const
+  0.13      7.57     0.01                             __aarch64_ldadd8_relax
+  0.13      7.58     0.01                             hdr_value_at_percentile
+  0.00      7.58     0.00 17621821     0.00     0.00  wiretap::TimeBase::instance()
+  0.00      7.58     0.00  2039218     0.00     0.00  std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, unsigned long> >, unsigned int const&)
+  0.00      7.58     0.00   557684     0.00     0.00  wiretap::TimeBase::raw_ticks()
+  0.00      7.58     0.00   461272     0.00     0.00  wiretap::GapTracker::pop_applicable(wiretap::BufferedPacket&)
+  0.00      7.58     0.00   425364     0.00     0.00  wiretap::GapTracker::advance_time(unsigned long)
+  0.00      7.58     0.00   131773     0.00     0.00  wiretap::LatencyRecorder::record(wiretap::LatencyStage, unsigned long)
+  0.00      7.58     0.00   130984     0.00     0.00  wiretap::TimeBase::delta_ns(unsigned long, unsigned long) const
+  0.00      7.58     0.00    49175     0.00     0.00  wiretap::TimeBase::ticks_to_realtime_ns(unsigned long) const
+  0.00      7.58     0.00    26178     0.00     0.00  wiretap::TimeBase::realtime_ns_to_ticks(unsigned long) const
+  0.00      7.58     0.00    26051     0.00     0.00  (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const
+  0.00      7.58     0.00    25350     0.00     0.00  wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long)
+  0.00      7.58     0.00    25185     0.00     0.00  wiretap::GapTracker::maybe_heal(unsigned long)
+  0.00      7.58     0.00    25091     0.00     0.00  wiretap::GapTracker::pull_buffered()
+  0.00      7.58     0.00      938     0.00     0.00  std::pair<std::_Rb_tree_iterator<std::pair<unsigned long const, wiretap::BufferedPacket> >, bool> std::_Rb_tree<unsigned long, std::pair<unsigned long const, wiretap::BufferedPacket>, std::_Select1st<std::pair<unsigned long const, wiretap::BufferedPacket> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, wiretap::BufferedPacket> > >::_M_emplace_unique<unsigned long&, wiretap::BufferedPacket>(unsigned long&, wiretap::BufferedPacket&&)
+  0.00      7.58     0.00      371     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)
+  0.00      7.58     0.00       61     0.00     0.00  (anonymous namespace)::parse_args(int, char**, (anonymous namespace)::Options&)::{lambda(char const*)#1}::operator()(char const*) const
+  0.00      7.58     0.00       45     0.00     0.00  std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_unique_pos(unsigned int const&)
+  0.00      7.58     0.00       18     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long)
+  0.00      7.58     0.00       11     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
+  0.00      7.58     0.00       10     0.00     0.00  wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const
+  0.00      7.58     0.00        9     0.00     0.00  std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()
+  0.00      7.58     0.00        7     0.00     0.00  wiretap::TimeBase::ns_to_ticks(unsigned long) const
+  0.00      7.58     0.00        4     0.00     0.00  wiretap::LatencyRecorder::LatencyRecorder()
+  0.00      7.58     0.00        4     0.00     0.00  wiretap::LatencyRecorder::~LatencyRecorder()
+  0.00      7.58     0.00        3     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      7.58     0.00        2     0.00     0.00  (anonymous namespace)::now_s()
+  0.00      7.58     0.00        2     0.00     0.00  wiretap::LatencyRecorder::merge(wiretap::LatencyRecorder const&)
+  0.00      7.58     0.00        2     0.00     0.00  wiretap::SpscRing<wiretap::Datagram>::SpscRing(unsigned long)
+  0.00      7.58     0.00        2     0.00     0.00  std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >::~unique_ptr()
+  0.00      7.58     0.00        2     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      7.58     0.00        1     0.00     7.06  (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::GapTracker::flush(unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::GapTracker::GapTracker(unsigned long, unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::GapTracker::~GapTracker()
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::free_histogram(hdr_histogram*)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::write_histogram_hgrm(hdr_histogram*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::histogram_total_count(hdr_histogram const*)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::timestamp_mechanism_name(wiretap::TimestampMechanism)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+  0.00      7.58     0.00        1     0.00     0.16  wiretap::Receiver::recv_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::Receiver::~Receiver()
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::TimeBase::initialize()
+  0.00      7.58     0.00        1     0.00     0.00  wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const
+  0.00      7.58     0.00        1     0.00     0.00  std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear()
+  0.00      7.58     0.00        1     0.00     0.00  std::deque<wiretap::BufferedPacket, std::allocator<wiretap::BufferedPacket> >::~deque()
+  0.00      7.58     0.00        1     0.00     0.00  std::vector<iovec, std::allocator<iovec> >::_M_default_append(unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  std::vector<mmsghdr, std::allocator<mmsghdr> >::_M_default_append(unsigned long)
+  0.00      7.58     0.00        1     0.00     0.00  void std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> >::_M_realloc_insert<wiretap::GapEvent>(__gnu_cxx::__normal_iterator<wiretap::GapEvent*, std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> > >, wiretap::GapEvent&&)
+  0.00      7.58     0.00        1     0.00     0.02  std::_MakeUniq<wiretap::BookBuilder>::__single_object std::make_unique<wiretap::BookBuilder>()
+
+			Call graph
+
+
+granularity: each sample hit covers 4 byte(s) for 0.13% of 7.58 seconds
+
+index % time    self  children    called     name
+                0.00    0.00       2/24953       main [10]
+                0.00    0.00       5/24953       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.01    7.05   24946/24953       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+[1]     93.2    0.01    7.05   24953         (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+                0.04    6.97 3211877/3211877     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+                0.04    0.00   25064/25064       wiretap::Decoder::decode_packet(unsigned char const*, unsigned long, std::vector<wiretap::BookUpdate, std::allocator<wiretap::BookUpdate> >&) const [19]
+                0.00    0.00  113336/131773      wiretap::LatencyRecorder::record(wiretap::LatencyStage, unsigned long) [82]
+                0.00    0.00  112586/130984      wiretap::TimeBase::delta_ns(unsigned long, unsigned long) const [83]
+                0.00    0.00   74814/557684      wiretap::TimeBase::raw_ticks() [79]
+                0.00    0.00   49174/49175       wiretap::TimeBase::ticks_to_realtime_ns(unsigned long) const [84]
+-----------------------------------------------
+                0.00    7.06       1/1           std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#3}> > >::_M_run() [3]
+[2]     93.1    0.00    7.06       1         (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    7.06   26051/26051       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+                0.00    0.00       5/24953       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+                0.00    0.00  435288/461272      wiretap::GapTracker::pop_applicable(wiretap::BufferedPacket&) [80]
+                0.00    0.00  430745/557684      wiretap::TimeBase::raw_ticks() [79]
+                0.00    0.00  425364/425364      wiretap::GapTracker::advance_time(unsigned long) [81]
+                0.00    0.00       1/17621821     wiretap::TimeBase::instance() [77]
+                0.00    0.00       1/4           wiretap::LatencyRecorder::LatencyRecorder() [98]
+                0.00    0.00       1/25091       wiretap::GapTracker::pull_buffered() [88]
+                0.00    0.00       1/1           wiretap::GapTracker::flush(unsigned long) [106]
+                0.00    0.00       1/49175       wiretap::TimeBase::ticks_to_realtime_ns(unsigned long) const [84]
+                0.00    0.00       1/4           wiretap::LatencyRecorder::~LatencyRecorder() [99]
+-----------------------------------------------
+                                                 <spontaneous>
+[3]     93.1    0.00    7.06                 std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#3}> > >::_M_run() [3]
+                0.00    7.06       1/1           (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+-----------------------------------------------
+                0.00    7.06   26051/26051       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+[4]     93.1    0.00    7.06   26051         (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+                0.01    7.05   24946/24953       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+                0.00    0.00   25984/461272      wiretap::GapTracker::pop_applicable(wiretap::BufferedPacket&) [80]
+                0.00    0.00   25983/557684      wiretap::TimeBase::raw_ticks() [79]
+                0.00    0.00   25350/25350       wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+-----------------------------------------------
+                0.04    6.97 3211877/3211877     (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+[5]     92.5    0.04    6.97 3211877         wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+                3.82    0.00 2050931/2050931     wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [6]
+                2.59    0.00 1286546/1286546     wiretap::BookBuilder::remove_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [7]
+                0.08    0.15 2080545/2080545     wiretap::BookBuilder::snapshot(char const*, unsigned long, wiretap::DepthSnapshot&) const [8]
+                0.23    0.00 3198844/3198844     std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [9]
+                0.08    0.00 1280995/1280995     std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [18]
+                0.02    0.00  486556/486556      std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, false, false>) [20]
+-----------------------------------------------
+                3.82    0.00 2050931/2050931     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[6]     50.4    3.82    0.00 2050931         wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [6]
+                0.00    0.00 2038847/2039218     std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, unsigned long> >, unsigned int const&) [78]
+                0.00    0.00      45/45          std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_unique_pos(unsigned int const&) [92]
+-----------------------------------------------
+                2.59    0.00 1286546/1286546     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[7]     34.2    2.59    0.00 1286546         wiretap::BookBuilder::remove_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [7]
+-----------------------------------------------
+                0.08    0.15 2080545/2080545     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[8]      3.0    0.08    0.15 2080545         wiretap::BookBuilder::snapshot(char const*, unsigned long, wiretap::DepthSnapshot&) const [8]
+                0.15    0.00       8/9           std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [13]
+-----------------------------------------------
+                0.23    0.00 3198844/3198844     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[9]      3.0    0.23    0.00 3198844         std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [9]
+-----------------------------------------------
+                                                 <spontaneous>
+[10]     3.0    0.00    0.23                 main [10]
+                0.21    0.00       2/2           (anonymous namespace)::Options::~Options() <cycle 1> [12]
+                0.00    0.02       1/1           std::_MakeUniq<wiretap::BookBuilder>::__single_object std::make_unique<wiretap::BookBuilder>() [21]
+                0.00    0.00       2/24953       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+                0.00    0.00      61/61          (anonymous namespace)::parse_args(int, char**, (anonymous namespace)::Options&)::{lambda(char const*)#1}::operator()(char const*) const [91]
+                0.00    0.00       9/9           std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run() [96]
+                0.00    0.00       5/11          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [94]
+                0.00    0.00       3/3           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [100]
+                0.00    0.00       3/4           wiretap::LatencyRecorder::LatencyRecorder() [98]
+                0.00    0.00       3/4           wiretap::LatencyRecorder::~LatencyRecorder() [99]
+                0.00    0.00       2/2           wiretap::SpscRing<wiretap::Datagram>::SpscRing(unsigned long) [103]
+                0.00    0.00       2/2           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [105]
+                0.00    0.00       2/2           std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >::~unique_ptr() [104]
+                0.00    0.00       2/2           (anonymous namespace)::now_s() [101]
+                0.00    0.00       2/2           wiretap::LatencyRecorder::merge(wiretap::LatencyRecorder const&) [102]
+                0.00    0.00       1/17621821     wiretap::TimeBase::instance() [77]
+                0.00    0.00       1/1           wiretap::TimeBase::initialize() [115]
+                0.00    0.00       1/1           wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [113]
+                0.00    0.00       1/557684      wiretap::TimeBase::raw_ticks() [79]
+                0.00    0.00       1/7           wiretap::TimeBase::ns_to_ticks(unsigned long) const [97]
+                0.00    0.00       1/1           wiretap::timestamp_mechanism_name(wiretap::TimestampMechanism) [112]
+                0.00    0.00       1/1           wiretap::GapTracker::GapTracker(unsigned long, unsigned long) [107]
+                0.00    0.00       1/10          wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+                0.00    0.00       1/1           wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [116]
+                0.00    0.00       1/1           wiretap::GapTracker::~GapTracker() [108]
+                0.00    0.00       1/1           wiretap::Receiver::~Receiver() [114]
+-----------------------------------------------
+[11]     2.8    0.21    0.00       2+619     <cycle 1 as a whole> [11]
+                0.21    0.00     620+173545      (anonymous namespace)::Options::~Options() <cycle 1> [12]
+                0.00    0.00       1             std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() <cycle 1> [117]
+-----------------------------------------------
+                              173545             (anonymous namespace)::Options::~Options() <cycle 1> [12]
+                                 618             std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() <cycle 1> [117]
+                0.21    0.00       2/2           main [10]
+[12]     2.8    0.21    0.00     620+173545  (anonymous namespace)::Options::~Options() <cycle 1> [12]
+                0.00    0.00       6/11          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [94]
+                                   1             std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() <cycle 1> [117]
+                              173545             (anonymous namespace)::Options::~Options() <cycle 1> [12]
+-----------------------------------------------
+                0.02    0.00       1/9           std::_MakeUniq<wiretap::BookBuilder>::__single_object std::make_unique<wiretap::BookBuilder>() [21]
+                0.15    0.00       8/9           wiretap::BookBuilder::snapshot(char const*, unsigned long, wiretap::DepthSnapshot&) const [8]
+[13]     2.2    0.17    0.00       9         std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [13]
+-----------------------------------------------
+                0.16    0.00 17571246/17571246     wiretap::Receiver::recv_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [15]
+[14]     2.1    0.16    0.00 17571246         wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+                0.00    0.00 17621818/17621821     wiretap::TimeBase::instance() [77]
+                0.00    0.00   26178/26178       wiretap::TimeBase::realtime_ns_to_ticks(unsigned long) const [85]
+                0.00    0.00   26141/557684      wiretap::TimeBase::raw_ticks() [79]
+                0.00    0.00   18437/131773      wiretap::LatencyRecorder::record(wiretap::LatencyStage, unsigned long) [82]
+                0.00    0.00   18398/130984      wiretap::TimeBase::delta_ns(unsigned long, unsigned long) const [83]
+-----------------------------------------------
+                0.00    0.16       1/1           std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#1}> > >::_M_run() [16]
+[15]     2.1    0.00    0.16       1         wiretap::Receiver::recv_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [15]
+                0.16    0.00 17571246/17571246     wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+-----------------------------------------------
+                                                 <spontaneous>
+[16]     2.1    0.00    0.16                 std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#1}> > >::_M_run() [16]
+                0.00    0.16       1/1           wiretap::Receiver::recv_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [15]
+-----------------------------------------------
+                                                 <spontaneous>
+[17]     1.5    0.11    0.00                 _init [17]
+-----------------------------------------------
+                0.08    0.00 1280995/1280995     wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[18]     1.1    0.08    0.00 1280995         std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [18]
+-----------------------------------------------
+                0.04    0.00   25064/25064       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+[19]     0.5    0.04    0.00   25064         wiretap::Decoder::decode_packet(unsigned char const*, unsigned long, std::vector<wiretap::BookUpdate, std::allocator<wiretap::BookUpdate> >&) const [19]
+-----------------------------------------------
+                0.02    0.00  486556/486556      wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [5]
+[20]     0.3    0.02    0.00  486556         std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, false, false>) [20]
+-----------------------------------------------
+                0.00    0.02       1/1           main [10]
+[21]     0.2    0.00    0.02       1         std::_MakeUniq<wiretap::BookBuilder>::__single_object std::make_unique<wiretap::BookBuilder>() [21]
+                0.02    0.00       1/9           std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [13]
+-----------------------------------------------
+                                                 <spontaneous>
+[22]     0.1    0.01    0.00                 hdr_value_at_percentile [22]
+-----------------------------------------------
+                                                 <spontaneous>
+[23]     0.1    0.01    0.00                 __aarch64_ldadd8_relax [23]
+-----------------------------------------------
+                0.00    0.00       1/17621821     main [10]
+                0.00    0.00       1/17621821     (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    0.00       1/17621821     wiretap::GapTracker::GapTracker(unsigned long, unsigned long) [107]
+                0.00    0.00 17621818/17621821     wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+[77]     0.0    0.00    0.00 17621821         wiretap::TimeBase::instance() [77]
+-----------------------------------------------
+                0.00    0.00     371/2039218     std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) [90]
+                0.00    0.00 2038847/2039218     wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [6]
+[78]     0.0    0.00    0.00 2039218         std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, unsigned long> >, unsigned int const&) [78]
+-----------------------------------------------
+                0.00    0.00       1/557684      main [10]
+                0.00    0.00   25983/557684      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+                0.00    0.00   26141/557684      wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+                0.00    0.00   74814/557684      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+                0.00    0.00  430745/557684      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+[79]     0.0    0.00    0.00  557684         wiretap::TimeBase::raw_ticks() [79]
+-----------------------------------------------
+                0.00    0.00   25984/461272      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+                0.00    0.00  435288/461272      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+[80]     0.0    0.00    0.00  461272         wiretap::GapTracker::pop_applicable(wiretap::BufferedPacket&) [80]
+-----------------------------------------------
+                0.00    0.00  425364/425364      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+[81]     0.0    0.00    0.00  425364         wiretap::GapTracker::advance_time(unsigned long) [81]
+-----------------------------------------------
+                0.00    0.00   18437/131773      wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+                0.00    0.00  113336/131773      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+[82]     0.0    0.00    0.00  131773         wiretap::LatencyRecorder::record(wiretap::LatencyStage, unsigned long) [82]
+-----------------------------------------------
+                0.00    0.00   18398/130984      wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+                0.00    0.00  112586/130984      (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+[83]     0.0    0.00    0.00  130984         wiretap::TimeBase::delta_ns(unsigned long, unsigned long) const [83]
+-----------------------------------------------
+                0.00    0.00       1/49175       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    0.00   49174/49175       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const [1]
+[84]     0.0    0.00    0.00   49175         wiretap::TimeBase::ticks_to_realtime_ns(unsigned long) const [84]
+-----------------------------------------------
+                0.00    0.00   26178/26178       wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [14]
+[85]     0.0    0.00    0.00   26178         wiretap::TimeBase::realtime_ns_to_ticks(unsigned long) const [85]
+-----------------------------------------------
+                0.00    0.00   25350/25350       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const [4]
+[86]     0.0    0.00    0.00   25350         wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+                0.00    0.00   25185/25185       wiretap::GapTracker::maybe_heal(unsigned long) [87]
+                0.00    0.00   25090/25091       wiretap::GapTracker::pull_buffered() [88]
+                0.00    0.00     938/938         std::pair<std::_Rb_tree_iterator<std::pair<unsigned long const, wiretap::BufferedPacket> >, bool> std::_Rb_tree<unsigned long, std::pair<unsigned long const, wiretap::BufferedPacket>, std::_Select1st<std::pair<unsigned long const, wiretap::BufferedPacket> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, wiretap::BufferedPacket> > >::_M_emplace_unique<unsigned long&, wiretap::BufferedPacket>(unsigned long&, wiretap::BufferedPacket&&) [89]
+                0.00    0.00       1/1           void std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> >::_M_realloc_insert<wiretap::GapEvent>(__gnu_cxx::__normal_iterator<wiretap::GapEvent*, std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> > >, wiretap::GapEvent&&) [121]
+-----------------------------------------------
+                0.00    0.00   25185/25185       wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+[87]     0.0    0.00    0.00   25185         wiretap::GapTracker::maybe_heal(unsigned long) [87]
+-----------------------------------------------
+                0.00    0.00       1/25091       (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    0.00   25090/25091       wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+[88]     0.0    0.00    0.00   25091         wiretap::GapTracker::pull_buffered() [88]
+-----------------------------------------------
+                0.00    0.00     938/938         wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+[89]     0.0    0.00    0.00     938         std::pair<std::_Rb_tree_iterator<std::pair<unsigned long const, wiretap::BufferedPacket> >, bool> std::_Rb_tree<unsigned long, std::pair<unsigned long const, wiretap::BufferedPacket>, std::_Select1st<std::pair<unsigned long const, wiretap::BufferedPacket> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, wiretap::BufferedPacket> > >::_M_emplace_unique<unsigned long&, wiretap::BufferedPacket>(unsigned long&, wiretap::BufferedPacket&&) [89]
+-----------------------------------------------
+                0.00    0.00      11/371         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::push_back(char) [359]
+                0.00    0.00      94/371         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) [93]
+                0.00    0.00     266/371         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long) [354]
+[90]     0.0    0.00    0.00     371         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) [90]
+                0.00    0.00     371/2039218     std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, unsigned long> >, unsigned int const&) [78]
+-----------------------------------------------
+                0.00    0.00      61/61          main [10]
+[91]     0.0    0.00    0.00      61         (anonymous namespace)::parse_args(int, char**, (anonymous namespace)::Options&)::{lambda(char const*)#1}::operator()(char const*) const [91]
+-----------------------------------------------
+                0.00    0.00      45/45          wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [6]
+[92]     0.0    0.00    0.00      45         std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_unique_pos(unsigned int const&) [92]
+-----------------------------------------------
+                0.00    0.00       3/18          wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [116]
+                0.00    0.00      15/18          wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+[93]     0.0    0.00    0.00      18         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) [93]
+                0.00    0.00      94/371         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long) [90]
+-----------------------------------------------
+                0.00    0.00       5/11          main [10]
+                0.00    0.00       6/11          (anonymous namespace)::Options::~Options() <cycle 1> [12]
+[94]     0.0    0.00    0.00      11         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose() [94]
+-----------------------------------------------
+                                  17             wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+                0.00    0.00       1/10          main [10]
+                0.00    0.00       9/10          wiretap::GapTracker::~GapTracker() [108]
+[95]     0.0    0.00    0.00      10+17      wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+                0.00    0.00      15/18          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) [93]
+                0.00    0.00       5/7           wiretap::TimeBase::ns_to_ticks(unsigned long) const [97]
+                                  17             wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+-----------------------------------------------
+                0.00    0.00       9/9           main [10]
+[96]     0.0    0.00    0.00       9         std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run() [96]
+-----------------------------------------------
+                0.00    0.00       1/7           main [10]
+                0.00    0.00       1/7           wiretap::GapTracker::GapTracker(unsigned long, unsigned long) [107]
+                0.00    0.00       5/7           wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+[97]     0.0    0.00    0.00       7         wiretap::TimeBase::ns_to_ticks(unsigned long) const [97]
+-----------------------------------------------
+                0.00    0.00       1/4           (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    0.00       3/4           main [10]
+[98]     0.0    0.00    0.00       4         wiretap::LatencyRecorder::LatencyRecorder() [98]
+-----------------------------------------------
+                0.00    0.00       1/4           (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+                0.00    0.00       3/4           main [10]
+[99]     0.0    0.00    0.00       4         wiretap::LatencyRecorder::~LatencyRecorder() [99]
+-----------------------------------------------
+                0.00    0.00       3/3           main [10]
+[100]    0.0    0.00    0.00       3         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [100]
+-----------------------------------------------
+                0.00    0.00       2/2           main [10]
+[101]    0.0    0.00    0.00       2         (anonymous namespace)::now_s() [101]
+-----------------------------------------------
+                0.00    0.00       2/2           main [10]
+[102]    0.0    0.00    0.00       2         wiretap::LatencyRecorder::merge(wiretap::LatencyRecorder const&) [102]
+-----------------------------------------------
+                0.00    0.00       2/2           main [10]
+[103]    0.0    0.00    0.00       2         wiretap::SpscRing<wiretap::Datagram>::SpscRing(unsigned long) [103]
+-----------------------------------------------
+                0.00    0.00       2/2           main [10]
+[104]    0.0    0.00    0.00       2         std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >::~unique_ptr() [104]
+-----------------------------------------------
+                0.00    0.00       2/2           main [10]
+[105]    0.0    0.00    0.00       2         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [105]
+-----------------------------------------------
+                0.00    0.00       1/1           (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) [2]
+[106]    0.0    0.00    0.00       1         wiretap::GapTracker::flush(unsigned long) [106]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[107]    0.0    0.00    0.00       1         wiretap::GapTracker::GapTracker(unsigned long, unsigned long) [107]
+                0.00    0.00       1/17621821     wiretap::TimeBase::instance() [77]
+                0.00    0.00       1/7           wiretap::TimeBase::ns_to_ticks(unsigned long) const [97]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[108]    0.0    0.00    0.00       1         wiretap::GapTracker::~GapTracker() [108]
+                0.00    0.00       9/10          wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [95]
+                0.00    0.00       1/1           wiretap::free_histogram(hdr_histogram*) [109]
+                0.00    0.00       1/1           std::deque<wiretap::BufferedPacket, std::allocator<wiretap::BufferedPacket> >::~deque() [118]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::GapTracker::~GapTracker() [108]
+[109]    0.0    0.00    0.00       1         wiretap::free_histogram(hdr_histogram*) [109]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [116]
+[110]    0.0    0.00    0.00       1         wiretap::write_histogram_hgrm(hdr_histogram*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [110]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [116]
+[111]    0.0    0.00    0.00       1         wiretap::histogram_total_count(hdr_histogram const*) [111]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[112]    0.0    0.00    0.00       1         wiretap::timestamp_mechanism_name(wiretap::TimestampMechanism) [112]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[113]    0.0    0.00    0.00       1         wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [113]
+                0.00    0.00       1/1           std::vector<mmsghdr, std::allocator<mmsghdr> >::_M_default_append(unsigned long) [120]
+                0.00    0.00       1/1           std::vector<iovec, std::allocator<iovec> >::_M_default_append(unsigned long) [119]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[114]    0.0    0.00    0.00       1         wiretap::Receiver::~Receiver() [114]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[115]    0.0    0.00    0.00       1         wiretap::TimeBase::initialize() [115]
+-----------------------------------------------
+                0.00    0.00       1/1           main [10]
+[116]    0.0    0.00    0.00       1         wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [116]
+                0.00    0.00       3/18          std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long) [93]
+                0.00    0.00       1/1           wiretap::histogram_total_count(hdr_histogram const*) [111]
+                0.00    0.00       1/1           wiretap::write_histogram_hgrm(hdr_histogram*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [110]
+-----------------------------------------------
+                                   1             (anonymous namespace)::Options::~Options() <cycle 1> [12]
+[117]    0.0    0.00    0.00       1         std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() <cycle 1> [117]
+                                 618             (anonymous namespace)::Options::~Options() <cycle 1> [12]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::GapTracker::~GapTracker() [108]
+[118]    0.0    0.00    0.00       1         std::deque<wiretap::BufferedPacket, std::allocator<wiretap::BufferedPacket> >::~deque() [118]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [113]
+[119]    0.0    0.00    0.00       1         std::vector<iovec, std::allocator<iovec> >::_M_default_append(unsigned long) [119]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [113]
+[120]    0.0    0.00    0.00       1         std::vector<mmsghdr, std::allocator<mmsghdr> >::_M_default_append(unsigned long) [120]
+-----------------------------------------------
+                0.00    0.00       1/1           wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [86]
+[121]    0.0    0.00    0.00       1         void std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> >::_M_realloc_insert<wiretap::GapEvent>(__gnu_cxx::__normal_iterator<wiretap::GapEvent*, std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> > >, wiretap::GapEvent&&) [121]
+-----------------------------------------------
+
+Index by function name
+
+   [2] (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long) (wiretap_recv.cpp) [14] wiretap::Receiver::drain_once(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [118] std::deque<wiretap::BufferedPacket, std::allocator<wiretap::BufferedPacket> >::~deque()
+ [101] (anonymous namespace)::now_s() (wiretap_recv.cpp) [113] wiretap::Receiver::open_socket(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [96] std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run() (std_thread.h)
+  [12] (anonymous namespace)::Options::~Options() (wiretap_recv.cpp) [15] wiretap::Receiver::recv_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::LatencyRecorder*, unsigned long) [119] std::vector<iovec, std::allocator<iovec> >::_M_default_append(unsigned long)
+  [87] wiretap::GapTracker::maybe_heal(unsigned long) [114] wiretap::Receiver::~Receiver() [120] std::vector<mmsghdr, std::allocator<mmsghdr> >::_M_default_append(unsigned long)
+  [81] wiretap::GapTracker::advance_time(unsigned long) [103] wiretap::SpscRing<wiretap::Datagram>::SpscRing(unsigned long) [121] void std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> >::_M_realloc_insert<wiretap::GapEvent>(__gnu_cxx::__normal_iterator<wiretap::GapEvent*, std::vector<wiretap::GapEvent, std::allocator<wiretap::GapEvent> > >, wiretap::GapEvent&&)
+  [88] wiretap::GapTracker::pull_buffered() [115] wiretap::TimeBase::initialize() [94] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()
+  [80] wiretap::GapTracker::pop_applicable(wiretap::BufferedPacket&) [77] wiretap::TimeBase::instance() [93] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_append(char const*, unsigned long)
+  [86] wiretap::GapTracker::push(unsigned long, unsigned long, unsigned char const*, unsigned long, unsigned long, unsigned long) [79] wiretap::TimeBase::raw_ticks() [105] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+ [106] wiretap::GapTracker::flush(unsigned long) [116] wiretap::GapTracker::write_heal_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [90] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_mutate(unsigned long, unsigned long, char const*, unsigned long)
+ [107] wiretap::GapTracker::GapTracker(unsigned long, unsigned long) [8] wiretap::BookBuilder::snapshot(char const*, unsigned long, wiretap::DepthSnapshot&) const [100] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+ [108] wiretap::GapTracker::~GapTracker() [95] wiretap::LatencyRecorder::write_report(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, _IO_FILE*) const [92] std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_unique_pos(unsigned int const&)
+   [7] wiretap::BookBuilder::remove_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [19] wiretap::Decoder::decode_packet(unsigned char const*, unsigned long, std::vector<wiretap::BookUpdate, std::allocator<wiretap::BookUpdate> >&) const [78] std::_Rb_tree<unsigned int, std::pair<unsigned int const, unsigned long>, std::_Select1st<std::pair<unsigned int const, unsigned long> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, unsigned long> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, unsigned long> >, unsigned int const&)
+   [5] wiretap::BookBuilder::apply(wiretap::BookUpdate const&) [97] wiretap::TimeBase::ns_to_ticks(unsigned long) const [89] std::pair<std::_Rb_tree_iterator<std::pair<unsigned long const, wiretap::BufferedPacket> >, bool> std::_Rb_tree<unsigned long, std::pair<unsigned long const, wiretap::BufferedPacket>, std::_Select1st<std::pair<unsigned long const, wiretap::BufferedPacket> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, wiretap::BufferedPacket> > >::_M_emplace_unique<unsigned long&, wiretap::BufferedPacket>(unsigned long&, wiretap::BufferedPacket&&)
+   [6] wiretap::BookBuilder::add_level(wiretap::BookBuilder::SymbolBook&, wiretap::Side, unsigned int, unsigned long) [85] wiretap::TimeBase::realtime_ns_to_ticks(unsigned long) const [21] std::_MakeUniq<wiretap::BookBuilder>::__single_object std::make_unique<wiretap::BookBuilder>()
+ [109] wiretap::free_histogram(hdr_histogram*) [84] wiretap::TimeBase::ticks_to_realtime_ns(unsigned long) const [91] (anonymous namespace)::parse_args(int, char**, (anonymous namespace)::Options&)::{lambda(char const*)#1}::operator()(char const*) const (wiretap_recv.cpp)
+ [102] wiretap::LatencyRecorder::merge(wiretap::LatencyRecorder const&) [83] wiretap::TimeBase::delta_ns(unsigned long, unsigned long) const [1] (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(unsigned char const*, unsigned long, unsigned long, unsigned long)#2}::operator()(unsigned char const*, unsigned long, unsigned long, unsigned long) const (wiretap_recv.cpp)
+  [82] wiretap::LatencyRecorder::record(wiretap::LatencyStage, unsigned long) [9] std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [4] (anonymous namespace)::decode_loop(wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::Datagram>&, wiretap::SpscRing<wiretap::GapRequest>&, bool, wiretap::GapTracker&, wiretap::BookBuilder*, wiretap::Decoder&, wiretap::LatencyRecorder&, std::atomic<bool> const&, std::atomic<bool> const&, (anonymous namespace)::Counters&, wiretap::SpscRing<wiretap::BookUpdate>*, wiretap::SpscRing<wiretap::SecondStats>*, wiretap::SpscRing<wiretap::GapEvent>*, unsigned long)::{lambda(wiretap::Datagram const&, bool)#5}::operator()(wiretap::Datagram const&, bool) const (wiretap_recv.cpp)
+  [98] wiretap::LatencyRecorder::LatencyRecorder() [117] std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::SymbolBook> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::clear() [23] __aarch64_ldadd8_relax
+  [99] wiretap::LatencyRecorder::~LatencyRecorder() [18] std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [17] _init
+ [110] wiretap::write_histogram_hgrm(hdr_histogram*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [20] std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::erase(std::__detail::_Node_const_iterator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, false, false>) [22] hdr_value_at_percentile
+ [111] wiretap::histogram_total_count(hdr_histogram const*) [13] std::_Hashtable<unsigned long, std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord>, std::allocator<std::pair<unsigned long const, wiretap::BookBuilder::OrderRecord> >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&) [11] <cycle 1>
+ [112] wiretap::timestamp_mechanism_name(wiretap::TimestampMechanism) [104] std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >::~unique_ptr()

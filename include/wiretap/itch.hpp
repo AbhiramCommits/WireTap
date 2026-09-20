@@ -75,7 +75,9 @@ inline constexpr std::size_t message_size(char type) noexcept {
   }
 }
 
-inline constexpr bool is_known(char type) noexcept { return message_size(type) != 0; }
+inline constexpr bool is_known(char type) noexcept {
+  return message_size(type) != 0;
+}
 
 // ---------------------------------------------------------------------------
 // Big-endian decode helpers.
@@ -89,26 +91,20 @@ inline std::uint16_t be16(const std::uint8_t* p) noexcept {
 }
 
 inline std::uint32_t be32(const std::uint8_t* p) noexcept {
-  return (static_cast<std::uint32_t>(p[0]) << 24) |
-         (static_cast<std::uint32_t>(p[1]) << 16) |
+  return (static_cast<std::uint32_t>(p[0]) << 24) | (static_cast<std::uint32_t>(p[1]) << 16) |
          (static_cast<std::uint32_t>(p[2]) << 8) | static_cast<std::uint32_t>(p[3]);
 }
 
 inline std::uint64_t be48(const std::uint8_t* p) noexcept {
-  return (static_cast<std::uint64_t>(p[0]) << 40) |
-         (static_cast<std::uint64_t>(p[1]) << 32) |
-         (static_cast<std::uint64_t>(p[2]) << 24) |
-         (static_cast<std::uint64_t>(p[3]) << 16) |
+  return (static_cast<std::uint64_t>(p[0]) << 40) | (static_cast<std::uint64_t>(p[1]) << 32) |
+         (static_cast<std::uint64_t>(p[2]) << 24) | (static_cast<std::uint64_t>(p[3]) << 16) |
          (static_cast<std::uint64_t>(p[4]) << 8) | static_cast<std::uint64_t>(p[5]);
 }
 
 inline std::uint64_t be64(const std::uint8_t* p) noexcept {
-  return (static_cast<std::uint64_t>(p[0]) << 56) |
-         (static_cast<std::uint64_t>(p[1]) << 48) |
-         (static_cast<std::uint64_t>(p[2]) << 40) |
-         (static_cast<std::uint64_t>(p[3]) << 32) |
-         (static_cast<std::uint64_t>(p[4]) << 24) |
-         (static_cast<std::uint64_t>(p[5]) << 16) |
+  return (static_cast<std::uint64_t>(p[0]) << 56) | (static_cast<std::uint64_t>(p[1]) << 48) |
+         (static_cast<std::uint64_t>(p[2]) << 40) | (static_cast<std::uint64_t>(p[3]) << 32) |
+         (static_cast<std::uint64_t>(p[4]) << 24) | (static_cast<std::uint64_t>(p[5]) << 16) |
          (static_cast<std::uint64_t>(p[6]) << 8) | static_cast<std::uint64_t>(p[7]);
 }
 
@@ -130,13 +126,13 @@ inline T load_unaligned(const void* p) noexcept {
 
 #pragma pack(push, 1)
 
-struct AddOrder {  // 'A'
-  char type;           // 0:  'A'
-  char order_ref[8];   // 1:  u64 BE
-  char side;           // 9:  'B' | 'S'
-  char shares[4];      // 10: u32 BE
-  char stock[8];       // 14: alpha
-  char price[4];       // 22: u32 BE
+struct AddOrder {     // 'A'
+  char type;          // 0:  'A'
+  char order_ref[8];  // 1:  u64 BE
+  char side;          // 9:  'B' | 'S'
+  char shares[4];     // 10: u32 BE
+  char stock[8];      // 14: alpha
+  char price[4];      // 22: u32 BE
 
   std::uint64_t order_ref_number() const noexcept {
     return be64(reinterpret_cast<const std::uint8_t*>(order_ref));
@@ -150,13 +146,13 @@ struct AddOrder {  // 'A'
 };
 static_assert(sizeof(AddOrder) == kAddOrderSize, "AddOrder must be 26 bytes");
 
-struct AddOrderMpid {  // 'F'
-  char type;           // 0:  'F'
-  char order_ref[8];   // 1:  u64 BE
-  char side;           // 9:  'B' | 'S'
-  char shares[4];      // 10: u32 BE
-  char stock[8];       // 14: alpha
-  char price[4];       // 22: u32 BE
+struct AddOrderMpid {   // 'F'
+  char type;            // 0:  'F'
+  char order_ref[8];    // 1:  u64 BE
+  char side;            // 9:  'B' | 'S'
+  char shares[4];       // 10: u32 BE
+  char stock[8];        // 14: alpha
+  char price[4];        // 22: u32 BE
   char attribution[4];  // 26: alpha MPID
 
   std::uint64_t order_ref_number() const noexcept {
@@ -171,11 +167,11 @@ struct AddOrderMpid {  // 'F'
 };
 static_assert(sizeof(AddOrderMpid) == kAddOrderMpidSize, "AddOrderMpid must be 30 bytes");
 
-struct OrderExecuted {  // 'E'
-  char type;            // 0:  'E'
-  char order_ref[8];    // 1:  u64 BE
-  char exec_shares[4];  // 9:  u32 BE
-  char match_number[8]; // 13: u64 BE
+struct OrderExecuted {   // 'E'
+  char type;             // 0:  'E'
+  char order_ref[8];     // 1:  u64 BE
+  char exec_shares[4];   // 9:  u32 BE
+  char match_number[8];  // 13: u64 BE
 
   std::uint64_t order_ref_number() const noexcept {
     return be64(reinterpret_cast<const std::uint8_t*>(order_ref));
@@ -189,10 +185,10 @@ struct OrderExecuted {  // 'E'
 };
 static_assert(sizeof(OrderExecuted) == kOrderExecutedSize, "OrderExecuted must be 21 bytes");
 
-struct OrderCancel {  // 'X'
-  char type;             // 0: 'X'
-  char order_ref[8];     // 1: u64 BE
-  char cancel_shares[4]; // 9: u32 BE
+struct OrderCancel {      // 'X'
+  char type;              // 0: 'X'
+  char order_ref[8];      // 1: u64 BE
+  char cancel_shares[4];  // 9: u32 BE
 
   std::uint64_t order_ref_number() const noexcept {
     return be64(reinterpret_cast<const std::uint8_t*>(order_ref));
@@ -213,12 +209,12 @@ struct OrderDelete {  // 'D'
 };
 static_assert(sizeof(OrderDelete) == kOrderDeleteSize, "OrderDelete must be 9 bytes");
 
-struct OrderReplace {  // 'U'
-  char type;             // 0:  'U'
-  char old_order_ref[8]; // 1:  u64 BE
-  char new_order_ref[8]; // 9:  u64 BE
-  char shares[4];        // 17: u32 BE
-  char price[4];         // 21: u32 BE
+struct OrderReplace {     // 'U'
+  char type;              // 0:  'U'
+  char old_order_ref[8];  // 1:  u64 BE
+  char new_order_ref[8];  // 9:  u64 BE
+  char shares[4];         // 17: u32 BE
+  char price[4];          // 21: u32 BE
 
   std::uint64_t original_ref_number() const noexcept {
     return be64(reinterpret_cast<const std::uint8_t*>(old_order_ref));
@@ -235,14 +231,14 @@ struct OrderReplace {  // 'U'
 };
 static_assert(sizeof(OrderReplace) == kOrderReplaceSize, "OrderReplace must be 25 bytes");
 
-struct TradeNonCross {  // 'P'
-  char type;            // 0:  'P'
-  char order_ref[8];    // 1:  u64 BE
-  char side;            // 9:  'B' | 'S'
-  char shares[4];       // 10: u32 BE
-  char stock[8];        // 14: alpha
-  char price[4];        // 22: u32 BE
-  char match_number[8]; // 26: u64 BE
+struct TradeNonCross {   // 'P'
+  char type;             // 0:  'P'
+  char order_ref[8];     // 1:  u64 BE
+  char side;             // 9:  'B' | 'S'
+  char shares[4];        // 10: u32 BE
+  char stock[8];         // 14: alpha
+  char price[4];         // 22: u32 BE
+  char match_number[8];  // 26: u64 BE
 
   std::uint64_t order_ref_number() const noexcept {
     return be64(reinterpret_cast<const std::uint8_t*>(order_ref));
@@ -260,10 +256,10 @@ struct TradeNonCross {  // 'P'
 static_assert(sizeof(TradeNonCross) == kTradeNonCrossSize, "TradeNonCross must be 34 bytes");
 
 struct SystemEvent {  // 'S'
-  char type;         // 0: 'S'
-  char timestamp[6]; // 1: u48 BE nanoseconds since midnight
-  char event_code;   // 7: 'O' start | 'S' start of system hours |
-                     //    'C' end of system hours | 'E' end of messages
+  char type;          // 0: 'S'
+  char timestamp[6];  // 1: u48 BE nanoseconds since midnight
+  char event_code;    // 7: 'O' start | 'S' start of system hours |
+                      //    'C' end of system hours | 'E' end of messages
 
   std::uint64_t timestamp_ns() const noexcept {
     return be48(reinterpret_cast<const std::uint8_t*>(timestamp));

@@ -6,16 +6,18 @@
 
 namespace wiretap {
 
-bool packet_length(const std::uint8_t* data, std::size_t size,
-                   std::size_t& length) noexcept {
-  if (data == nullptr || size < itch::kPacketHeaderSize) return false;
+bool packet_length(const std::uint8_t* data, std::size_t size, std::size_t& length) noexcept {
+  if (data == nullptr || size < itch::kPacketHeaderSize)
+    return false;
   const std::uint16_t count = itch::be16(data + itch::kSessionLength + itch::kSequenceLength);
   std::size_t off = itch::kPacketHeaderSize;
   for (std::uint16_t i = 0; i < count; ++i) {
-    if (off + itch::kMessageLengthSize > size) return false;
+    if (off + itch::kMessageLengthSize > size)
+      return false;
     const std::uint16_t mlen = itch::be16(data + off);
     off += itch::kMessageLengthSize;
-    if (off + mlen > size) return false;
+    if (off + mlen > size)
+      return false;
     off += mlen;
   }
   length = off;
@@ -28,7 +30,9 @@ inline Side side_from(char c) noexcept {
   return c == 'B' ? Side::Buy : (c == 'S' ? Side::Sell : Side::Unknown);
 }
 
-inline void set_symbol(char dst[8], const char* src) noexcept { std::memcpy(dst, src, 8); }
+inline void set_symbol(char dst[8], const char* src) noexcept {
+  std::memcpy(dst, src, 8);
+}
 
 // Decodes one message body into a BookUpdate. `body` points at the type byte;
 // the caller has already validated the length against the expected size.

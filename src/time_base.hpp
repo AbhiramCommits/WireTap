@@ -35,8 +35,7 @@ class TimeBase {
   // wall-clock nanoseconds -> ticks (normalizing kernel timestamps).
   std::uint64_t realtime_ns_to_ticks(std::uint64_t ns) const noexcept;
   // Delta between two tick values -> nanoseconds.
-  std::uint64_t delta_ns(std::uint64_t end_ticks,
-                         std::uint64_t start_ticks) const noexcept;
+  std::uint64_t delta_ns(std::uint64_t end_ticks, std::uint64_t start_ticks) const noexcept;
   // Nanosecond duration -> ticks (for timeout configuration).
   std::uint64_t ns_to_ticks(std::uint64_t ns) const noexcept;
 

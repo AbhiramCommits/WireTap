@@ -23,16 +23,14 @@ std::vector<std::uint8_t> big_valid_packet() {
   std::vector<std::vector<std::uint8_t>> msgs;
   msgs.push_back(testutil::system_event(0x00000000DEADBEEF, 'O'));
   for (int i = 0; i < 40; ++i) {
-    msgs.push_back(testutil::add_order(i % 2 ? 'B' : 'S', 1000 + i, 100 + i, "AAPL",
-                                       1000000 + i));
+    msgs.push_back(testutil::add_order(i % 2 ? 'B' : 'S', 1000 + i, 100 + i, "AAPL", 1000000 + i));
   }
   msgs.push_back(testutil::order_executed(1001, 50, 1));
   msgs.push_back(testutil::system_event(0x0000010000000000, 'E'));
   return testutil::packet(msgs, 1);
 }
 
-void expect_canary_intact(const std::uint8_t* data, std::size_t len,
-                          std::uint8_t canary) {
+void expect_canary_intact(const std::uint8_t* data, std::size_t len, std::uint8_t canary) {
   for (std::size_t i = len; i < len + 32; ++i) {
     EXPECT_EQ(data[i], canary) << "canary corrupted at offset " << i;
   }
@@ -72,8 +70,7 @@ TEST(Malformed, CanaryRegionUntouched) {
   expect_canary_intact(buf.data(), pkt.size(), 0xAA);
 
   out.clear();
-  EXPECT_NE(dec.decode_packet(buf.data(), pkt.size() - 3, out).error,
-            wt::DecodeError::Ok);
+  EXPECT_NE(dec.decode_packet(buf.data(), pkt.size() - 3, out).error, wt::DecodeError::Ok);
   expect_canary_intact(buf.data(), pkt.size(), 0xAA);
 }
 
@@ -92,8 +89,10 @@ TEST(Malformed, RandomizedFuzzNoCrashNoCanaryDamage) {
   for (int iter = 0; iter < 20000; ++iter) {
     const std::size_t n = next() % 300;
     std::vector<std::uint8_t> buf(n + 32);
-    for (std::size_t i = 0; i < n; ++i) buf[i] = static_cast<std::uint8_t>(next());
-    for (std::size_t i = n; i < n + 32; ++i) buf[i] = 0x5A;
+    for (std::size_t i = 0; i < n; ++i)
+      buf[i] = static_cast<std::uint8_t>(next());
+    for (std::size_t i = n; i < n + 32; ++i)
+      buf[i] = 0x5A;
     out.clear();
     dec.decode_packet(buf.data(), n, out);  // must never crash
     for (std::size_t i = n; i < n + 32; ++i) {
@@ -109,16 +108,14 @@ TEST(Malformed, GuardPageCatchesOutOfBoundsReads) {
   ASSERT_GT(page, 0);
   ASSERT_LT(pkt.size(), static_cast<std::size_t>(page) - 64);
 
-  void* base = ::mmap(nullptr, static_cast<std::size_t>(page) * 2,
-                      PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  void* base = ::mmap(nullptr, static_cast<std::size_t>(page) * 2, PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   ASSERT_NE(base, MAP_FAILED);
-  ASSERT_EQ(::mprotect(static_cast<char*>(base) + page, static_cast<std::size_t>(page),
-                       PROT_NONE),
+  ASSERT_EQ(::mprotect(static_cast<char*>(base) + page, static_cast<std::size_t>(page), PROT_NONE),
             0);
 
   // Packet data ends exactly at the guard page: any read past len faults.
-  std::uint8_t* buf =
-      static_cast<std::uint8_t*>(base) + page - pkt.size();
+  std::uint8_t* buf = static_cast<std::uint8_t*>(base) + page - pkt.size();
   std::memcpy(buf, pkt.data(), pkt.size());
 
   wt::Decoder dec;

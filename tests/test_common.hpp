@@ -39,9 +39,8 @@ inline void put_stock(std::uint8_t* p, const char* sym) {
   std::memcpy(p, sym, std::strlen(sym));
 }
 
-inline std::vector<std::uint8_t> add_order(char side, std::uint64_t ref,
-                                           std::uint32_t qty, const char* stock,
-                                           std::uint32_t price) {
+inline std::vector<std::uint8_t> add_order(char side, std::uint64_t ref, std::uint32_t qty,
+                                           const char* stock, std::uint32_t price) {
   std::vector<std::uint8_t> m(26);
   m[0] = 'A';
   put_be64(m.data() + 1, ref);
@@ -52,9 +51,9 @@ inline std::vector<std::uint8_t> add_order(char side, std::uint64_t ref,
   return m;
 }
 
-inline std::vector<std::uint8_t> add_order_mpid(char side, std::uint64_t ref,
-                                                std::uint32_t qty, const char* stock,
-                                                std::uint32_t price, const char* mpid) {
+inline std::vector<std::uint8_t> add_order_mpid(char side, std::uint64_t ref, std::uint32_t qty,
+                                                const char* stock, std::uint32_t price,
+                                                const char* mpid) {
   std::vector<std::uint8_t> m(30);
   m[0] = 'F';
   put_be64(m.data() + 1, ref);
@@ -92,9 +91,8 @@ inline std::vector<std::uint8_t> order_delete(std::uint64_t ref) {
   return m;
 }
 
-inline std::vector<std::uint8_t> order_replace(std::uint64_t old_ref,
-                                               std::uint64_t new_ref, std::uint32_t qty,
-                                               std::uint32_t price) {
+inline std::vector<std::uint8_t> order_replace(std::uint64_t old_ref, std::uint64_t new_ref,
+                                               std::uint32_t qty, std::uint32_t price) {
   std::vector<std::uint8_t> m(25);
   m[0] = 'U';
   put_be64(m.data() + 1, old_ref);
@@ -104,9 +102,9 @@ inline std::vector<std::uint8_t> order_replace(std::uint64_t old_ref,
   return m;
 }
 
-inline std::vector<std::uint8_t> trade_non_cross(std::uint64_t ref, char side,
-                                                 std::uint32_t qty, const char* stock,
-                                                 std::uint32_t price, std::uint64_t match) {
+inline std::vector<std::uint8_t> trade_non_cross(std::uint64_t ref, char side, std::uint32_t qty,
+                                                 const char* stock, std::uint32_t price,
+                                                 std::uint64_t match) {
   std::vector<std::uint8_t> m(34);
   m[0] = 'P';
   put_be64(m.data() + 1, ref);
@@ -130,7 +128,8 @@ inline std::vector<std::uint8_t> system_event(std::uint64_t ts_ns, char code) {
 inline std::vector<std::uint8_t> packet(const std::vector<std::vector<std::uint8_t>>& msgs,
                                         std::uint64_t seq) {
   std::size_t total = 20;
-  for (const auto& m : msgs) total += 2 + m.size();
+  for (const auto& m : msgs)
+    total += 2 + m.size();
   std::vector<std::uint8_t> p(total);
   std::memcpy(p.data(), "WIRETAP001", 10);
   put_be64(p.data() + 10, seq);

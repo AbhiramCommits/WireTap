@@ -15,15 +15,13 @@ std::vector<std::uint8_t> kitchen_sink_packet() {
   std::vector<std::vector<std::uint8_t>> msgs;
   msgs.push_back(testutil::system_event(0x001122334455, 'O'));
   msgs.push_back(testutil::add_order('B', 0x0102030405060708ull, 700, "AAPL", 1234500));
-  msgs.push_back(testutil::add_order_mpid('S', 0x1020304050607080ull, 250, "MSFT",
-                                          987654, "WIRE"));
+  msgs.push_back(testutil::add_order_mpid('S', 0x1020304050607080ull, 250, "MSFT", 987654, "WIRE"));
   msgs.push_back(testutil::order_executed(0x0102030405060708ull, 300, 1));
   msgs.push_back(testutil::order_cancel(0x0102030405060708ull, 400));
   msgs.push_back(testutil::order_delete(0x1020304050607080ull));
-  msgs.push_back(testutil::order_replace(0x0102030405060708ull, 0xAAAAAAAA55555555ull,
-                                         120, 1234600));
-  msgs.push_back(testutil::trade_non_cross(0xAAAAAAAA55555555ull, 'B', 120, "AAPL",
-                                           1234600, 2));
+  msgs.push_back(
+      testutil::order_replace(0x0102030405060708ull, 0xAAAAAAAA55555555ull, 120, 1234600));
+  msgs.push_back(testutil::trade_non_cross(0xAAAAAAAA55555555ull, 'B', 120, "AAPL", 1234600, 2));
   // Unknown type 'R', 4-byte payload: must be skipped by length.
   msgs.push_back({0x52, 0x01, 0x02, 0x03});
   return testutil::packet(msgs, 42);
@@ -104,12 +102,12 @@ TEST(Decoder, RoundTripsEveryMessageType) {
     EXPECT_EQ(u.price_ticks, 1234600);
     EXPECT_EQ(wt::symbol_string(u.symbol), "AAPL");
   }
-  for (const auto& u : out) EXPECT_EQ(u.recv_ts_ns, 999u);
+  for (const auto& u : out)
+    EXPECT_EQ(u.recv_ts_ns, 999u);
 }
 
 TEST(Decoder, AppendsAcrossPackets) {
-  const auto pkt = testutil::packet(
-      {testutil::add_order('B', 1, 100, "AAPL", 1000000)}, 1);
+  const auto pkt = testutil::packet({testutil::add_order('B', 1, 100, "AAPL", 1000000)}, 1);
   wt::Decoder dec;
   std::vector<wt::BookUpdate> out;
   EXPECT_EQ(dec.decode_packet(pkt.data(), pkt.size(), out).error, wt::DecodeError::Ok);
@@ -165,9 +163,8 @@ TEST(Decoder, TruncatedLengthField) {
 
 TEST(Decoder, TruncatedMessageBody) {
   // Declared count of 2, but the second message is cut short.
-  auto pkt = testutil::packet({testutil::add_order('B', 1, 10, "AAPL", 1000000),
-                               testutil::order_delete(2)},
-                              5);
+  auto pkt = testutil::packet(
+      {testutil::add_order('B', 1, 10, "AAPL", 1000000), testutil::order_delete(2)}, 5);
   wt::Decoder dec;
   std::vector<wt::BookUpdate> out;
   const auto r = dec.decode_packet(pkt.data(), pkt.size() - 1, out);
@@ -224,9 +221,8 @@ TEST(Decoder, UnknownTypeIsSkippedByLength) {
 TEST(Decoder, ErrorRollsBackPartialUpdates) {
   const auto good = testutil::packet({testutil::order_delete(1)}, 1);
   // Two messages; the second is truncated so the first decodes then rolls back.
-  const auto bad = testutil::packet({testutil::add_order('B', 2, 10, "AAPL", 1000000),
-                                     testutil::order_delete(3)},
-                                    2);
+  const auto bad = testutil::packet(
+      {testutil::add_order('B', 2, 10, "AAPL", 1000000), testutil::order_delete(3)}, 2);
   wt::Decoder dec;
   std::vector<wt::BookUpdate> out;
   ASSERT_EQ(dec.decode_packet(good.data(), good.size(), out).error, wt::DecodeError::Ok);

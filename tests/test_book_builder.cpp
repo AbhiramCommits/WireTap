@@ -29,8 +29,8 @@ bool snap(const wt::BookBuilder& book, const char* symbol, std::size_t depth,
   return book.snapshot(padded, depth, out);
 }
 
-wt::BookUpdate add(char symbol, wt::Side side, std::uint32_t price,
-                   std::uint32_t qty, std::uint64_t ref) {
+wt::BookUpdate add(char symbol, wt::Side side, std::uint32_t price, std::uint32_t qty,
+                   std::uint64_t ref) {
   wt::BookUpdate u;
   std::snprintf(u.symbol, 8, "%c", symbol);
   u.action = wt::Action::Added;
@@ -64,8 +64,8 @@ wt::BookUpdate del(std::uint64_t ref) {
   return u;
 }
 
-wt::BookUpdate replace(std::uint64_t old_ref, std::uint64_t new_ref,
-                       std::uint32_t price, std::uint32_t qty) {
+wt::BookUpdate replace(std::uint64_t old_ref, std::uint64_t new_ref, std::uint32_t price,
+                       std::uint32_t qty) {
   wt::BookUpdate u;
   u.action = wt::Action::Replaced;
   u.order_ref = new_ref;
@@ -163,8 +163,7 @@ TEST(BookBuilder, ExecutedClampsToRemainingQty) {
 TEST(BookBuilder, DepthLimitAndMissingSymbol) {
   wt::BookBuilder book;
   for (std::uint64_t i = 0; i < 5; ++i) {
-    book.apply(add('E', wt::Side::Buy, 100000 - static_cast<std::uint32_t>(i),
-                   100, i + 1));
+    book.apply(add('E', wt::Side::Buy, 100000 - static_cast<std::uint32_t>(i), 100, i + 1));
   }
   wt::DepthSnapshot s;
   ASSERT_TRUE(snap(book, "E", 2, s));
@@ -200,8 +199,7 @@ std::vector<std::uint8_t> read_file(const std::string& path) {
 
 // symbol -> {bids (best first), asks (best first)}, plus the ORDERS total.
 struct ExpectedBook {
-  std::map<std::string, std::pair<std::vector<ExpectedRow>,
-                                  std::vector<ExpectedRow>>> levels;
+  std::map<std::string, std::pair<std::vector<ExpectedRow>, std::vector<ExpectedRow>>> levels;
   std::uint64_t orders = 0;
 };
 
@@ -210,7 +208,8 @@ void parse_expected(const std::string& path, ExpectedBook& eb) {
   EXPECT_TRUE(f.good()) << "missing reference book file: " << path;
   std::string line;
   while (std::getline(f, line)) {
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#')
+      continue;
     std::istringstream ss(line);
     std::string a, b;
     ASSERT_TRUE(std::getline(ss, a, '\t') && std::getline(ss, b, '\t'));
@@ -220,8 +219,7 @@ void parse_expected(const std::string& path, ExpectedBook& eb) {
     }
     std::string c, d;
     ASSERT_TRUE(std::getline(ss, c, '\t') && std::getline(ss, d, '\t'));
-    ExpectedRow row{a, b.at(0), static_cast<std::uint32_t>(std::stoul(c)),
-                    std::stoull(d)};
+    ExpectedRow row{a, b.at(0), static_cast<std::uint32_t>(std::stoul(c)), std::stoull(d)};
     if (row.side == 'B') {
       eb.levels[row.symbol].first.push_back(row);
     } else {
@@ -249,7 +247,8 @@ TEST(BookBuilder, FixtureReplayMatchesPythonReference) {
     updates.clear();
     const auto r = dec.decode_packet(bin.data() + off, plen, updates);
     ASSERT_EQ(r.error, wt::DecodeError::Ok);
-    for (const auto& u : updates) book.apply(u);
+    for (const auto& u : updates)
+      book.apply(u);
     ++packets;
     off += plen;
   }
@@ -264,8 +263,7 @@ TEST(BookBuilder, FixtureReplayMatchesPythonReference) {
   std::size_t checked_symbols = 0;
   for (const auto& [symbol, sides] : expected.levels) {
     wt::DepthSnapshot s;
-    ASSERT_TRUE(book.snapshot(symbol.c_str(), 4096, s))
-        << "builder missing symbol " << symbol;
+    ASSERT_TRUE(book.snapshot(symbol.c_str(), 4096, s)) << "builder missing symbol " << symbol;
     const auto& [bids, asks] = sides;
     ASSERT_EQ(s.bids.size(), bids.size()) << "symbol " << symbol << " bids";
     for (std::size_t i = 0; i < bids.size(); ++i) {

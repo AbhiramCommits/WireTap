@@ -64,6 +64,6 @@ TEST(TimeBase, TicksAdvanceOverSleep) {
   std::this_thread::sleep_for(std::chrono::milliseconds(5));
   const std::uint64_t b = tb.now_ticks();
   const std::uint64_t ns = tb.delta_ns(b, a);
-  EXPECT_GT(ns, 1000000u);   // at least 1 ms elapsed
-  EXPECT_LT(ns, 1000000000u); // less than 1 s
+  EXPECT_GT(ns, 1000000u);     // at least 1 ms elapsed
+  EXPECT_LT(ns, 1000000000u);  // less than 1 s
 }

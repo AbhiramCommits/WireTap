@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <unistd.h>
 #include <cstdio>
 #include <fstream>
 #include <string>
-#include <unistd.h>
 
 #include "latency.hpp"
 
@@ -23,9 +23,12 @@ std::string make_temp_dir() {
 TEST(LatencyRecorder, RecordsAndReportsPercentiles) {
   wt::LatencyRecorder rec;
   // Values 100, 1000, 10000 ns: clearly separated at 3 significant digits.
-  for (int i = 0; i < 100; ++i) rec.record(wt::LatencyStage::DecodeTime, 100);
-  for (int i = 0; i < 100; ++i) rec.record(wt::LatencyStage::DecodeTime, 1000);
-  for (int i = 0; i < 100; ++i) rec.record(wt::LatencyStage::DecodeTime, 10000);
+  for (int i = 0; i < 100; ++i)
+    rec.record(wt::LatencyStage::DecodeTime, 100);
+  for (int i = 0; i < 100; ++i)
+    rec.record(wt::LatencyStage::DecodeTime, 1000);
+  for (int i = 0; i < 100; ++i)
+    rec.record(wt::LatencyStage::DecodeTime, 10000);
 
   EXPECT_EQ(rec.count(wt::LatencyStage::DecodeTime), 300u);
   EXPECT_EQ(rec.count(wt::LatencyStage::WireToUserspace), 0u);
@@ -50,8 +53,10 @@ TEST(LatencyRecorder, ZeroClampsToMinimum) {
 TEST(LatencyRecorder, MergeAccumulates) {
   wt::LatencyRecorder a;
   wt::LatencyRecorder b;
-  for (int i = 0; i < 1000; ++i) a.record(wt::LatencyStage::DecodeTime, 500);
-  for (int i = 0; i < 500; ++i) b.record(wt::LatencyStage::DecodeTime, 900);
+  for (int i = 0; i < 1000; ++i)
+    a.record(wt::LatencyStage::DecodeTime, 500);
+  for (int i = 0; i < 500; ++i)
+    b.record(wt::LatencyStage::DecodeTime, 900);
   a.merge(b);
   EXPECT_EQ(a.count(wt::LatencyStage::DecodeTime), 1500u);
 }
@@ -68,12 +73,12 @@ TEST(LatencyRecorder, WritesHgrmAndJsonReports) {
   const std::string dir = make_temp_dir();
   FILE* sink = ::tmpfile();
   rec.write_report(dir, "test", sink);
-  if (sink != nullptr) std::fclose(sink);
+  if (sink != nullptr)
+    std::fclose(sink);
 
   auto read_file = [](const std::string& path) {
     std::ifstream f(path);
-    return std::string((std::istreambuf_iterator<char>(f)),
-                       std::istreambuf_iterator<char>());
+    return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
   };
 
   const std::string hgrm = read_file(dir + "/test-wire_to_book.hgrm");

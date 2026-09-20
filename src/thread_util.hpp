@@ -21,7 +21,8 @@ namespace wiretap {
 // Pins the calling thread to one CPU. Returns false (and prints a warning)
 // when affinity is unavailable (EPERM or non-Linux platforms).
 inline bool pin_cpu(int cpu) noexcept {
-  if (cpu < 0) return false;
+  if (cpu < 0)
+    return false;
 #if defined(__linux__)
   cpu_set_t set;
   CPU_ZERO(&set);
@@ -29,8 +30,7 @@ inline bool pin_cpu(int cpu) noexcept {
   if (::pthread_setaffinity_np(::pthread_self(), sizeof(set), &set) == 0) {
     return true;
   }
-  std::fprintf(stderr, "wiretap: pin to CPU %d failed: %s\n", cpu,
-               std::strerror(errno));
+  std::fprintf(stderr, "wiretap: pin to CPU %d failed: %s\n", cpu, std::strerror(errno));
 #else
   (void)cpu;
   std::fprintf(stderr, "wiretap: CPU affinity is not supported on this platform\n");

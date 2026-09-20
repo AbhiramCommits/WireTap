@@ -62,15 +62,15 @@ inline constexpr std::size_t kMaxHistogramBuckets = 2048;
 // Per-second aggregate stats produced by the decode thread and pushed into
 // the stats ring at each wall-clock second boundary.
 struct SecondStats {
-  std::uint64_t sec = 0;          // unix seconds
-  std::uint64_t messages = 0;     // messages decoded this second
-  std::uint64_t packets = 0;      // packets decoded this second
-  std::uint64_t ring_drops = 0;   // live ring drops (cumulative)
-  std::uint64_t archive_drops = 0;// archive ring drops (cumulative)
-  std::uint64_t gaps_detected = 0;   // cumulative
-  std::uint64_t gaps_healed = 0;     // cumulative
-  std::uint64_t permanently_lost = 0;// cumulative
-  std::uint64_t recovered = 0;       // cumulative
+  std::uint64_t sec = 0;               // unix seconds
+  std::uint64_t messages = 0;          // messages decoded this second
+  std::uint64_t packets = 0;           // packets decoded this second
+  std::uint64_t ring_drops = 0;        // live ring drops (cumulative)
+  std::uint64_t archive_drops = 0;     // archive ring drops (cumulative)
+  std::uint64_t gaps_detected = 0;     // cumulative
+  std::uint64_t gaps_healed = 0;       // cumulative
+  std::uint64_t permanently_lost = 0;  // cumulative
+  std::uint64_t recovered = 0;         // cumulative
   LatencyPercentiles queue_delay{};
   LatencyPercentiles decode_time{};
   LatencyPercentiles wire_to_book{};
@@ -94,8 +94,8 @@ class ArchiveWriter {
 
   // Blocks until `stop` is set; drains the rings before returning and
   // finalizes every open Parquet file.
-  void run(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& stats,
-           SpscRing<GapEvent>& gaps, const std::atomic<bool>& stop);
+  void run(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& stats, SpscRing<GapEvent>& gaps,
+           const std::atomic<bool>& stop);
 
   std::uint64_t updates_written() const noexcept;
   std::uint64_t stats_written() const noexcept;
@@ -105,13 +105,12 @@ class ArchiveWriter {
   std::uint64_t publish_errors() const noexcept;
 
  private:
-  struct ParquetWriter;   // implementation detail
+  struct ParquetWriter;  // implementation detail
 
-  std::shared_ptr<ParquetWriter> writer_for(
-      const std::string& partition_key, const std::filesystem::path& dir,
-      const std::shared_ptr<arrow::Schema>& schema);
-  void drain(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& stats,
-             SpscRing<GapEvent>& gaps);
+  std::shared_ptr<ParquetWriter> writer_for(const std::string& partition_key,
+                                            const std::filesystem::path& dir,
+                                            const std::shared_ptr<arrow::Schema>& schema);
+  void drain(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& stats, SpscRing<GapEvent>& gaps);
   void flush_updates();
   void flush_stats();
   void flush_depth();
@@ -127,8 +126,8 @@ class ArchiveWriter {
 
   BookBuilder book_;  // archive-thread private book for live snapshots
 
-  std::vector<BookUpdate> pending_updates_;     // flushed at ~1M rows / 5 s
-  std::vector<std::string> pending_stats_rows_; // TSV rows, flushed every 60
+  std::vector<BookUpdate> pending_updates_;      // flushed at ~1M rows / 5 s
+  std::vector<std::string> pending_stats_rows_;  // TSV rows, flushed every 60
   std::vector<std::string> pending_depth_rows_;
   std::vector<GapEvent> pending_gaps_;
 
@@ -153,7 +152,7 @@ class ArchiveWriter {
 // Dumps a histogram's (value, count) buckets in ascending value order.
 // Returns the number of buckets written (truncated to `max`). (Takes the
 // GLOBAL hdr_histogram struct; declared inside the namespace for convenience.)
-std::uint32_t dump_histogram_buckets(struct ::hdr_histogram* h,
-                                     HistogramBucket* out, std::uint32_t max);
+std::uint32_t dump_histogram_buckets(struct ::hdr_histogram* h, HistogramBucket* out,
+                                     std::uint32_t max);
 
 }  // namespace wiretap

@@ -34,15 +34,14 @@ inline const char* decode_error_name(DecodeError e) noexcept {
 struct DecodeResult {
   DecodeError error = DecodeError::Ok;
   std::uint64_t sequence_number = 0;
-  std::uint16_t message_count = 0;   // as declared in the packet header
-  std::uint16_t updates_decoded = 0; // BookUpdates appended to `out` (0 on error)
+  std::uint16_t message_count = 0;    // as declared in the packet header
+  std::uint16_t updates_decoded = 0;  // BookUpdates appended to `out` (0 on error)
 };
 
 // Returns the on-wire length of the packet starting at `data` (MoldUDP64
 // framing), or false if the buffer is malformed/short. Used to walk a capture
 // file frame-by-frame.
-bool packet_length(const std::uint8_t* data, std::size_t size,
-                   std::size_t& length) noexcept;
+bool packet_length(const std::uint8_t* data, std::size_t size, std::size_t& length) noexcept;
 
 class Decoder {
  public:

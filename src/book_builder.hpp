@@ -74,12 +74,9 @@ class BookBuilder {
     return k;
   }
 
-  static std::map<std::uint32_t, std::uint64_t>& side_map(SymbolBook& sb,
-                                                          Side side) noexcept;
-  static void add_level(SymbolBook& sb, Side side, std::uint32_t price,
-                        std::uint64_t qty);
-  static void remove_level(SymbolBook& sb, Side side, std::uint32_t price,
-                           std::uint64_t qty);
+  static std::map<std::uint32_t, std::uint64_t>& side_map(SymbolBook& sb, Side side) noexcept;
+  static void add_level(SymbolBook& sb, Side side, std::uint32_t price, std::uint64_t qty);
+  static void remove_level(SymbolBook& sb, Side side, std::uint32_t price, std::uint64_t qty);
 
   std::unordered_map<std::uint64_t, SymbolBook> symbols_;
   std::unordered_map<std::uint64_t, OrderRecord> orders_;

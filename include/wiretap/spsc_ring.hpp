@@ -36,8 +36,7 @@ template <typename T>
 class SpscRing {
   static_assert(std::is_trivially_copyable<T>::value,
                 "T must be trivially copyable (slots are copied by assignment)");
-  static_assert(std::is_trivially_destructible<T>::value,
-                "T must be trivially destructible");
+  static_assert(std::is_trivially_destructible<T>::value, "T must be trivially destructible");
   static_assert(alignof(T) <= 64, "slot alignment must not exceed 64");
 
   // Producer's cache line: head (shared read by consumer) plus the producer's
@@ -62,7 +61,8 @@ class SpscRing {
       throw std::length_error("SpscRing capacity too large");
     }
     capacity_ = 1;
-    while (capacity_ < capacity) capacity_ <<= 1;
+    while (capacity_ < capacity)
+      capacity_ <<= 1;
     mask_ = capacity_ - 1;
 
     void* mem = ::operator new[](capacity_ * sizeof(T), std::align_val_t{64});
@@ -94,7 +94,8 @@ class SpscRing {
     const std::size_t t = tail_.tail.load(std::memory_order_relaxed);
     if (t == tail_.head_cache) {
       tail_.head_cache = head_.head.load(std::memory_order_acquire);
-      if (t == tail_.head_cache) return false;
+      if (t == tail_.head_cache)
+        return false;
     }
     out = slots_[t & mask_];
     tail_.tail.store(t + 1, std::memory_order_release);
@@ -115,13 +116,11 @@ class SpscRing {
 
   // Number of pushes rejected because the ring was full. Written by the
   // producer; read it from non-hot-path code.
-  std::uint64_t drops() const noexcept {
-    return drops_.load(std::memory_order_relaxed);
-  }
+  std::uint64_t drops() const noexcept { return drops_.load(std::memory_order_relaxed); }
 
  private:
-  HeadLine head_;                          // cache line 0
-  TailLine tail_;                          // cache line 1
+  HeadLine head_;                                    // cache line 0
+  TailLine tail_;                                    // cache line 1
   alignas(64) std::atomic<std::uint64_t> drops_{0};  // cache line 2
   T* slots_ = nullptr;
   std::size_t capacity_ = 0;

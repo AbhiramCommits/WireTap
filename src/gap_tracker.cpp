@@ -17,12 +17,12 @@ GapTracker::GapTracker(std::size_t window, std::uint64_t timeout_ns)
 }
 
 GapTracker::~GapTracker() {
-  if (heal_hist_ != nullptr) free_histogram(heal_hist_);
+  if (heal_hist_ != nullptr)
+    free_histogram(heal_hist_);
 }
 
-PushResult GapTracker::push(std::uint64_t seq, std::uint64_t now_ticks,
-                            const std::uint8_t* bytes, std::size_t len,
-                            std::uint64_t recv_ts_ticks,
+PushResult GapTracker::push(std::uint64_t seq, std::uint64_t now_ticks, const std::uint8_t* bytes,
+                            std::size_t len, std::uint64_t recv_ts_ticks,
                             std::uint64_t hw_ts_ticks) noexcept {
   PushResult res;
 
@@ -86,7 +86,8 @@ PushResult GapTracker::push(std::uint64_t seq, std::uint64_t now_ticks,
 }
 
 bool GapTracker::pop_applicable(BufferedPacket& out) noexcept {
-  if (ready_.empty()) return false;
+  if (ready_.empty())
+    return false;
   out = std::move(ready_.front());
   ready_.pop_front();
   return true;
@@ -102,22 +103,24 @@ void GapTracker::pull_buffered() noexcept {
 }
 
 void GapTracker::maybe_heal(std::uint64_t now_ticks) noexcept {
-  if (!gap_active_ || expected_ < gap_end_) return;
+  if (!gap_active_ || expected_ < gap_end_)
+    return;
   gap_active_ = false;
   events_.back().end = expected_ - 1;
   if (gap_lost_ == 0) {
     events_.back().healed = true;
     events_.back().healed_ticks = now_ticks;
     healed_.fetch_add(1, std::memory_order_relaxed);
-    const std::uint64_t heal_ns =
-        TimeBase::instance().delta_ns(now_ticks, gap_detected_ticks_);
+    const std::uint64_t heal_ns = TimeBase::instance().delta_ns(now_ticks, gap_detected_ticks_);
     ::hdr_record_value(heal_hist_, static_cast<std::int64_t>(heal_ns >= 1 ? heal_ns : 1));
   }
 }
 
 void GapTracker::advance_time(std::uint64_t now_ticks) noexcept {
-  if (!gap_active_) return;
-  if (now_ticks - gap_detected_ticks_ < timeout_ticks_) return;
+  if (!gap_active_)
+    return;
+  if (now_ticks - gap_detected_ticks_ < timeout_ticks_)
+    return;
 
   if (!buffered_.empty()) {
     // Skip straight to the next packet we actually have; everything before it
@@ -141,7 +144,8 @@ void GapTracker::advance_time(std::uint64_t now_ticks) noexcept {
 }
 
 void GapTracker::flush(std::uint64_t now_ticks) {
-  if (!started_) return;
+  if (!started_)
+    return;
   if (gap_active_) {
     if (!buffered_.empty()) {
       const std::uint64_t next_known = buffered_.begin()->first;
@@ -162,12 +166,16 @@ void GapTracker::flush(std::uint64_t now_ticks) {
   pull_buffered();
 }
 
-void GapTracker::write_heal_report(const std::string& dir,
-                                   const std::string& prefix, FILE* out) const {
-  if (heal_hist_ == nullptr) return;
-  std::fprintf(out, "time-to-heal (ns)      count       mean        p50        p90        p99      p99.9     p99.99        max\n");
-  std::fprintf(out, "  %-18s %12" PRIu64 " %10.1f %10" PRIu64 " %10" PRIu64
-                    " %10" PRIu64 " %10" PRIu64 " %10" PRIu64 " %10" PRIu64 "\n",
+void GapTracker::write_heal_report(const std::string& dir, const std::string& prefix,
+                                   FILE* out) const {
+  if (heal_hist_ == nullptr)
+    return;
+  std::fprintf(out,
+               "time-to-heal (ns)      count       mean        p50        p90        p99      "
+               "p99.9     p99.99        max\n");
+  std::fprintf(out,
+               "  %-18s %12" PRIu64 " %10.1f %10" PRIu64 " %10" PRIu64 " %10" PRIu64 " %10" PRIu64
+               " %10" PRIu64 " %10" PRIu64 "\n",
                "gap_heal", static_cast<std::uint64_t>(histogram_total_count(heal_hist_)),
                ::hdr_mean(heal_hist_),
                static_cast<std::uint64_t>(::hdr_value_at_percentile(heal_hist_, 50.0)),

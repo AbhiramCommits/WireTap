@@ -49,8 +49,10 @@ bool parse_row(const std::string& line, ExpectedUpdate& e) {
   std::istringstream ss(line);
   std::vector<std::string> fields;
   std::string tok;
-  while (std::getline(ss, tok, '\t')) fields.push_back(tok);
-  if (fields.size() != 10) return false;
+  while (std::getline(ss, tok, '\t'))
+    fields.push_back(tok);
+  if (fields.size() != 10)
+    return false;
   try {
     e.seq = std::stoull(fields[0]);
     e.type = fields[1].at(0);
@@ -123,7 +125,8 @@ TEST(RoundTrip, FixtureUnderOneMegabyte) {
 TEST(RoundTrip, ManifestCoversEveryMessageType) {
   const auto rows = read_manifest(data_file("roundtrip.tsv"));
   std::set<char> seen;
-  for (const auto& r : rows) seen.insert(r.type);
+  for (const auto& r : rows)
+    seen.insert(r.type);
   for (char t : std::string("AFEXDUPS")) {
     EXPECT_NE(seen.find(t), seen.end()) << "fixture never emits '" << t << "'";
   }

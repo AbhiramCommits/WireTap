@@ -64,16 +64,14 @@ class LatencyRecorder {
   // Prints a percentile table to `out` and writes per-stage .hgrm files plus
   // a JSON summary under `dir` (file names: {prefix}-{stage}.hgrm and
   // {prefix}-latency.json).
-  void write_report(const std::string& dir, const std::string& prefix,
-                    FILE* out) const;
+  void write_report(const std::string& dir, const std::string& prefix, FILE* out) const;
 
   struct hdr_histogram* histogram(LatencyStage stage) noexcept {
     return hists_[static_cast<std::size_t>(stage)];
   }
 
  private:
-  std::array<struct hdr_histogram*, static_cast<std::size_t>(LatencyStage::kCount)>
-      hists_{};
+  std::array<struct hdr_histogram*, static_cast<std::size_t>(LatencyStage::kCount)> hists_{};
 };
 
 }  // namespace wiretap

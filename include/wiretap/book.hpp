@@ -15,12 +15,12 @@ enum class Side : std::uint8_t {
 
 enum class Action : std::uint8_t {
   None = 0,
-  Added,       // 'A' AddOrder, 'F' AddOrderMPID
-  Executed,    // 'E' OrderExecuted, 'P' TradeNonCross
-  Canceled,    // 'X' OrderCancel
-  Deleted,     // 'D' OrderDelete
-  Replaced,    // 'U' OrderReplace
-  SystemEvent, // 'S' SystemEvent
+  Added,        // 'A' AddOrder, 'F' AddOrderMPID
+  Executed,     // 'E' OrderExecuted, 'P' TradeNonCross
+  Canceled,     // 'X' OrderCancel
+  Deleted,      // 'D' OrderDelete
+  Replaced,     // 'U' OrderReplace
+  SystemEvent,  // 'S' SystemEvent
   kCount
 };
 
@@ -57,8 +57,8 @@ inline const char* side_name(Side s) noexcept {
 // One normalized book event. Fields that a message does not carry are left at
 // their default values (symbol zeroed, side Unknown, price/qty/ref 0).
 struct BookUpdate {
-  char symbol[8] = {};        // alpha, left-justified, space padded; zeroed when N/A
-  Side side = Side::Unknown;  // 'B'/'S'
+  char symbol[8] = {};           // alpha, left-justified, space padded; zeroed when N/A
+  Side side = Side::Unknown;     // 'B'/'S'
   std::int64_t price_ticks = 0;  // raw ticks; 4 implied decimal places
   std::uint32_t qty = 0;
   std::uint64_t order_ref = 0;      // 'U': the NEW order reference
@@ -71,7 +71,8 @@ struct BookUpdate {
 // "symbol" as a trimmed std::string, e.g. "AAPL".
 inline std::string symbol_string(const char symbol[8]) {
   std::size_t len = 0;
-  while (len < 8 && symbol[len] != '\0' && symbol[len] != ' ') ++len;
+  while (len < 8 && symbol[len] != '\0' && symbol[len] != ' ')
+    ++len;
   return std::string(symbol, len);
 }
 

@@ -19,7 +19,9 @@ std::vector<std::uint8_t> bytes_for(std::uint64_t seq) {
   return b;
 }
 
-std::uint64_t ticks() { return wt::TimeBase::instance().now_ticks(); }
+std::uint64_t ticks() {
+  return wt::TimeBase::instance().now_ticks();
+}
 
 // Pushes `seq` (as if its packet bytes had arrived) and applies everything
 // the tracker releases, appending applied seqs to `applied`.
@@ -28,9 +30,11 @@ void push_and_drain(wt::GapTracker& tracker, std::uint64_t seq,
   const auto data = bytes_for(seq);
   const std::uint64_t now = ticks();
   const auto res = tracker.push(seq, now, data.data(), data.size(), now, now);
-  if (res.disposition == wt::PacketDisposition::Apply) applied.push_back(seq);
+  if (res.disposition == wt::PacketDisposition::Apply)
+    applied.push_back(seq);
   wt::BufferedPacket p;
-  while (tracker.pop_applicable(p)) applied.push_back(p.seq);
+  while (tracker.pop_applicable(p))
+    applied.push_back(p.seq);
 }
 
 }  // namespace
@@ -39,9 +43,11 @@ TEST(GapTracker, InOrderFastPath) {
   wt::TimeBase::instance().initialize();
   wt::GapTracker tracker;
   std::vector<std::uint64_t> applied;
-  for (std::uint64_t s = 1; s <= 100; ++s) push_and_drain(tracker, s, applied);
+  for (std::uint64_t s = 1; s <= 100; ++s)
+    push_and_drain(tracker, s, applied);
   ASSERT_EQ(applied.size(), 100u);
-  for (std::uint64_t i = 0; i < 100; ++i) EXPECT_EQ(applied[i], i + 1);
+  for (std::uint64_t i = 0; i < 100; ++i)
+    EXPECT_EQ(applied[i], i + 1);
   EXPECT_EQ(tracker.gaps_detected(), 0u);
   EXPECT_EQ(tracker.expected_sequence(), 101u);
   EXPECT_TRUE(tracker.settled());
@@ -100,7 +106,8 @@ TEST(GapTracker, TimeoutSkipsToBufferedPacket) {
 
   tracker.advance_time(ticks() + wt::TimeBase::instance().ns_to_ticks(timeout_ns + 1));
   wt::BufferedPacket p;
-  while (tracker.pop_applicable(p)) applied.push_back(p.seq);
+  while (tracker.pop_applicable(p))
+    applied.push_back(p.seq);
 
   EXPECT_EQ(tracker.permanently_lost(), 7u);  // 3..9
   EXPECT_EQ(tracker.gaps_healed(), 0u);
@@ -125,8 +132,10 @@ TEST(GapTracker, TimeoutWithoutBufferedAdvancesOneAndRearms) {
   for (int i = 0; i < 20; ++i) {
     tracker.advance_time(ticks() + wt::TimeBase::instance().ns_to_ticks(2 * timeout_ns));
     wt::BufferedPacket p;
-    while (tracker.pop_applicable(p)) applied.push_back(p.seq);
-    if (!tracker.gap_active()) break;
+    while (tracker.pop_applicable(p))
+      applied.push_back(p.seq);
+    if (!tracker.gap_active())
+      break;
   }
   EXPECT_FALSE(tracker.gap_active());
   EXPECT_GT(tracker.permanently_lost(), 0u);
@@ -138,7 +147,8 @@ TEST(GapTracker, WindowOverflowDropsFurthestOut) {
   wt::GapTracker tracker(/*window=*/4, /*timeout_ns=*/60000000000ull);
   std::vector<std::uint64_t> applied;
   push_and_drain(tracker, 1, applied);
-  for (std::uint64_t s = 5; s <= 20; ++s) push_and_drain(tracker, s, applied);
+  for (std::uint64_t s = 5; s <= 20; ++s)
+    push_and_drain(tracker, s, applied);
   // 16 packets arrive into a 4-slot window: 12 must be evicted.
   EXPECT_EQ(tracker.window_drops(), 12u);
   EXPECT_TRUE(tracker.gap_active());
@@ -154,7 +164,8 @@ TEST(GapTracker, FlushMarksRemainderLostAndReleasesWindow) {
   push_and_drain(tracker, 6, applied);  // buffered
   tracker.flush(ticks());
   wt::BufferedPacket p;
-  while (tracker.pop_applicable(p)) applied.push_back(p.seq);
+  while (tracker.pop_applicable(p))
+    applied.push_back(p.seq);
   EXPECT_EQ(tracker.permanently_lost(), 2u);
   EXPECT_EQ(tracker.gaps_healed(), 0u);
   ASSERT_EQ(applied.size(), 4u);
@@ -176,7 +187,8 @@ TEST(GapTracker, PartialRecoveryCountsLossAndSkips) {
   // 2 and 3 never arrive: timeout skips them, then 4,5 apply.
   tracker.advance_time(ticks() + wt::TimeBase::instance().ns_to_ticks(timeout_ns + 1));
   wt::BufferedPacket p;
-  while (tracker.pop_applicable(p)) applied.push_back(p.seq);
+  while (tracker.pop_applicable(p))
+    applied.push_back(p.seq);
   EXPECT_EQ(tracker.permanently_lost(), 2u);
   EXPECT_EQ(tracker.gaps_healed(), 0u);  // partial: not "healed"
   ASSERT_EQ(applied.size(), 4u);

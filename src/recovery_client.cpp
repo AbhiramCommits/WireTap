@@ -23,11 +23,12 @@ namespace {
 
 constexpr int kConnectTimeoutMs = 2000;
 constexpr int kReadTimeoutMs = 5000;
-constexpr std::size_t kMaxBufferedBytes = 64u << 20;  // sanity cap
+constexpr std::size_t kMaxBufferedBytes = 1u << 26u;  // sanity cap
 
 int connect_timeout(const std::string& host, std::uint16_t port, int ms) {
   const int fd = ::socket(AF_INET, SOCK_STREAM, 0);
-  if (fd < 0) return -1;
+  if (fd < 0)
+    return -1;
   struct sockaddr_in addr {};
   addr.sin_family = AF_INET;
   addr.sin_port = htons(port);
@@ -36,7 +37,8 @@ int connect_timeout(const std::string& host, std::uint16_t port, int ms) {
     return -1;
   }
   const int flags = ::fcntl(fd, F_GETFL, 0);
-  ::fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+  ::fcntl(fd, F_SETFL,
+          static_cast<int>(static_cast<unsigned>(flags) | static_cast<unsigned>(O_NONBLOCK)));
   int rc = ::connect(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof addr);
   if (rc != 0 && errno == EINPROGRESS) {
     struct pollfd pfd {};
@@ -64,8 +66,7 @@ int connect_timeout(const std::string& host, std::uint16_t port, int ms) {
 
 }  // namespace
 
-void RecoveryClient::run(SpscRing<GapRequest>& requests,
-                         SpscRing<Datagram>& recovered,
+void RecoveryClient::run(SpscRing<GapRequest>& requests, SpscRing<Datagram>& recovered,
                          const std::atomic<bool>& stop) {
   GapRequest req;
   for (;;) {
@@ -73,12 +74,14 @@ void RecoveryClient::run(SpscRing<GapRequest>& requests,
       fetch_range(req.start, req.end, recovered);
       continue;
     }
-    if (stop.load(std::memory_order_relaxed)) break;
+    if (stop.load(std::memory_order_relaxed))
+      break;
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   // Drain whatever was queued before shutdown so the decode thread sees the
   // data rather than timing the gap out.
-  while (requests.try_pop(req)) fetch_range(req.start, req.end, recovered);
+  while (requests.try_pop(req))
+    fetch_range(req.start, req.end, recovered);
 }
 
 bool RecoveryClient::fetch_range(std::uint64_t start, std::uint64_t end,
@@ -87,14 +90,13 @@ bool RecoveryClient::fetch_range(std::uint64_t start, std::uint64_t end,
 
   const int fd = connect_timeout(host_, port_, kConnectTimeoutMs);
   if (fd < 0) {
-    std::fprintf(stderr, "wiretap: recovery: connect to %s:%u failed: %s\n",
-                 host_.c_str(), port_, std::strerror(errno));
+    std::fprintf(stderr, "wiretap: recovery: connect to %s:%u failed: %s\n", host_.c_str(), port_,
+                 std::strerror(errno));
     errors_.fetch_add(1, std::memory_order_relaxed);
     return false;
   }
 
-  const std::string req = "GET " + std::to_string(start) + " " +
-                          std::to_string(end) + "\n";
+  const std::string req = "GET " + std::to_string(start) + " " + std::to_string(end) + "\n";
   const ssize_t sent = ::send(fd, req.data(), req.size(), MSG_NOSIGNAL);
   if (sent != static_cast<ssize_t>(req.size())) {
     ::close(fd);
@@ -116,11 +118,13 @@ bool RecoveryClient::fetch_range(std::uint64_t start, std::uint64_t end,
     }
     const ssize_t r = ::recv(fd, tmp, sizeof tmp, 0);
     if (r < 0) {
-      if (errno == EINTR) continue;
+      if (errno == EINTR)
+        continue;
       ok = false;
       break;
     }
-    if (r == 0) break;  // EOF: server sent the whole range (or an error)
+    if (r == 0)
+      break;  // EOF: server sent the whole range (or an error)
     buf.insert(buf.end(), tmp, tmp + r);
     if (buf.size() > kMaxBufferedBytes) {
       ok = false;
@@ -128,8 +132,7 @@ bool RecoveryClient::fetch_range(std::uint64_t start, std::uint64_t end,
     }
     if (buf.size() >= 6 && std::memcmp(buf.data(), "ERROR ", 6) == 0) {
       std::fprintf(stderr, "wiretap: recovery: server refused range %llu-%llu\n",
-                   static_cast<unsigned long long>(start),
-                   static_cast<unsigned long long>(end));
+                   static_cast<unsigned long long>(start), static_cast<unsigned long long>(end));
       ok = false;
       break;
     }
@@ -143,21 +146,22 @@ bool RecoveryClient::fetch_range(std::uint64_t start, std::uint64_t end,
       d.length = static_cast<std::uint32_t>(plen);
       std::memcpy(d.bytes.data(), buf.data() + off, plen);
       if (!recovered.try_push(d)) {
-        std::fprintf(stderr,
-                     "wiretap: recovery: recovered ring full, dropped seq\n");
+        std::fprintf(stderr, "wiretap: recovery: recovered ring full, dropped seq\n");
         errors_.fetch_add(1, std::memory_order_relaxed);
       } else {
         fetched_.fetch_add(1, std::memory_order_relaxed);
       }
       off += plen;
     }
-    if (off > 0) buf.erase(buf.begin(), buf.begin() + static_cast<long>(off));
+    if (off > 0)
+      buf.erase(buf.begin(), buf.begin() + static_cast<long>(off));
   }
 
   if (ok && !buf.empty()) {
     ok = false;  // trailing garbage after the frames
   }
-  if (!ok) errors_.fetch_add(1, std::memory_order_relaxed);
+  if (!ok)
+    errors_.fetch_add(1, std::memory_order_relaxed);
   ::close(fd);
   return ok;
 }

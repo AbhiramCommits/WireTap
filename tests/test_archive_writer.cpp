@@ -20,8 +20,8 @@
 
 #include <atomic>
 #include <cstdint>
-#include <ctime>
 #include <cstring>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -58,13 +58,17 @@ std::string make_temp_dir() {
   return dir;
 }
 
-void expect_status(const arrow::Status& st) { ASSERT_TRUE(st.ok()) << st.ToString(); }
+void expect_status(const arrow::Status& st) {
+  ASSERT_TRUE(st.ok()) << st.ToString();
+}
 
 std::vector<fs::path> parquet_files(const fs::path& root) {
   std::vector<fs::path> out;
-  if (!fs::exists(root)) return out;
+  if (!fs::exists(root))
+    return out;
   for (const auto& entry : fs::recursive_directory_iterator(root)) {
-    if (entry.path().extension() == ".parquet") out.push_back(entry.path());
+    if (entry.path().extension() == ".parquet")
+      out.push_back(entry.path());
   }
   return out;
 }
@@ -141,14 +145,17 @@ TEST(ArchiveWriter, WritesPartitionedZstdParquetArchive) {
   const auto files = parquet_files(fs::path(dir));
   ASSERT_GE(files.size(), 3u);
   std::set<std::string> symbols;
-  bool found_book = false, found_stats = false, found_depth = false,
-       found_gaps = false;
+  bool found_book = false, found_stats = false, found_depth = false, found_gaps = false;
   for (const auto& f : files) {
     const std::string p = f.string();
-    if (p.find("/book/") != std::string::npos) found_book = true;
-    if (p.find("/stats/") != std::string::npos) found_stats = true;
-    if (p.find("/depth/") != std::string::npos) found_depth = true;
-    if (p.find("/gaps/") != std::string::npos) found_gaps = true;
+    if (p.find("/book/") != std::string::npos)
+      found_book = true;
+    if (p.find("/stats/") != std::string::npos)
+      found_stats = true;
+    if (p.find("/depth/") != std::string::npos)
+      found_depth = true;
+    if (p.find("/gaps/") != std::string::npos)
+      found_gaps = true;
     const auto pos = p.find("symbol=");
     if (pos != std::string::npos) {
       const std::string rest = p.substr(pos + 7);
@@ -165,7 +172,8 @@ TEST(ArchiveWriter, WritesPartitionedZstdParquetArchive) {
   EXPECT_EQ(symbols.size(), 21u);
   std::size_t sy_my = 0;
   for (const auto& sym : symbols) {
-    if (sym.empty()) continue;
+    if (sym.empty())
+      continue;
     EXPECT_EQ(sym.substr(0, 3), "SYM");
     ++sy_my;
   }
@@ -175,12 +183,12 @@ TEST(ArchiveWriter, WritesPartitionedZstdParquetArchive) {
   std::uint64_t book_rows = 0;
   std::set<std::string> actions_seen;
   for (const auto& f : files) {
-    if (f.string().find("/book/") == std::string::npos) continue;
+    if (f.string().find("/book/") == std::string::npos)
+      continue;
     std::shared_ptr<arrow::io::ReadableFile> input;
     expect_status(arrow::io::ReadableFile::Open(f.string()).Value(&input));
     std::unique_ptr<parquet::arrow::FileReader> reader;
-    expect_status(parquet::arrow::OpenFile(input, arrow::default_memory_pool())
-                      .Value(&reader));
+    expect_status(parquet::arrow::OpenFile(input, arrow::default_memory_pool()).Value(&reader));
     // Compression: every column chunk must be ZSTD.
     const auto meta = reader->parquet_reader()->metadata();
     ASSERT_GT(meta->num_row_groups(), 0);
@@ -214,7 +222,8 @@ TEST(ArchiveWriter, RingFullDropsCountedNotBlocking) {
   u.qty = 1;
   std::uint64_t dropped = 0;
   for (int i = 0; i < 100; ++i) {
-    if (!updates.try_push(u)) ++dropped;
+    if (!updates.try_push(u))
+      ++dropped;
   }
   EXPECT_EQ(dropped, 96u);
   EXPECT_EQ(updates.size(), 4u);

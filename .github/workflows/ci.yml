@@ -33,6 +33,53 @@ jobs:
       - name: Test (ASan + UBSan)
         run: ctest --test-dir build-asan --output-on-failure
 
+  tsan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Apache Arrow (archive writer)
+        run: |
+          wget -q https://apache.jfrog.io/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-$(. /etc/os-release && echo $VERSION_CODENAME).deb
+          sudo apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-*.deb
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libarrow-dev libparquet-dev
+
+      - name: Configure (TSan)
+        run: cmake -S . -B build-tsan -DCMAKE_BUILD_TYPE=Debug -DWIRETAP_TSAN=ON
+
+      - name: Build (TSan)
+        run: cmake --build build-tsan -j2
+
+      - name: Test (TSan: SPSC ring must be race-free)
+        run: ctest --test-dir build-tsan --output-on-failure
+
+  format-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format + clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-format clang-tidy
+
+      - name: clang-format check
+        run: |
+          clang-format --dry-run -Werror $(find include src tests -name '*.cpp' -o -name '*.hpp')
+
+      - name: Configure (compile_commands.json for clang-tidy)
+        run: |
+          wget -q https://apache.jfrog.io/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-$(. /etc/os-release && echo $VERSION_CODENAME).deb
+          sudo apt-get install -y --no-install-recommends ./apache-arrow-apt-source-latest-*.deb
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libarrow-dev libparquet-dev
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: clang-tidy
+        run: |
+          clang-tidy -p build src/decoder.cpp src/book_builder.cpp src/receiver.cpp \
+            src/time_base.cpp src/latency.cpp src/gap_tracker.cpp \
+            src/recovery_client.cpp src/archive_writer.cpp
+
   python-lint:
     runs-on: ubuntu-latest
     steps:

@@ -38,8 +38,7 @@ TEST(ItchMessageSize, UnknownTypes) {
 }
 
 TEST(ItchBeDecoders, KnownPatterns) {
-  const std::uint8_t bytes[] = {0x01, 0x02, 0x03, 0x04, 0x05,
-                                0x06, 0x07, 0x08, 0x09};
+  const std::uint8_t bytes[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
   EXPECT_EQ(wt::be16(bytes), 0x0102u);
   EXPECT_EQ(wt::be32(bytes), 0x01020304u);
   EXPECT_EQ(wt::be48(bytes), 0x010203040506ull);
@@ -47,8 +46,7 @@ TEST(ItchBeDecoders, KnownPatterns) {
 }
 
 TEST(ItchBeDecoders, UnalignedAccess) {
-  const std::uint8_t bytes[] = {0xAA, 0x01, 0x02, 0x03, 0x04,
-                                0x05, 0x06, 0x07, 0x08, 0xBB};
+  const std::uint8_t bytes[] = {0xAA, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0xBB};
   EXPECT_EQ(wt::be16(bytes + 1), 0x0102u);
   EXPECT_EQ(wt::be32(bytes + 1), 0x01020304u);
   EXPECT_EQ(wt::be48(bytes + 1), 0x010203040506ull);
@@ -67,7 +65,8 @@ TEST(ItchLoadUnaligned, MisalignedStructCopy) {
   alignas(16) std::uint8_t buf[16 + 26] = {};
   std::uint8_t* p = buf + 1;  // deliberately misaligned
   p[0] = 'A';
-  for (int i = 0; i < 8; ++i) p[1 + i] = 0x11;
+  for (int i = 0; i < 8; ++i)
+    p[1 + i] = 0x11;
   p[9] = 'S';
   p[10] = 0x00;
   p[11] = 0x00;

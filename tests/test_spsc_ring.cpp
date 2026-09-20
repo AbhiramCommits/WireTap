@@ -21,7 +21,8 @@ struct alignas(64) Item {
 Item make_item(std::uint64_t seq) {
   Item it{};
   it.seq = seq;
-  for (int i = 0; i < 7; ++i) it.payload[i] = seq * 31 + static_cast<std::uint64_t>(i);
+  for (int i = 0; i < 7; ++i)
+    it.payload[i] = seq * 31 + static_cast<std::uint64_t>(i);
   return it;
 }
 
@@ -40,7 +41,8 @@ TEST(SpscRing, CapacityRoundedToPowerOfTwo) {
 
 TEST(SpscRing, PushPopFifo) {
   wt::SpscRing<Item> ring(4);
-  for (std::uint64_t i = 0; i < 4; ++i) EXPECT_TRUE(ring.try_push(make_item(i)));
+  for (std::uint64_t i = 0; i < 4; ++i)
+    EXPECT_TRUE(ring.try_push(make_item(i)));
   EXPECT_TRUE(ring.full());
   EXPECT_FALSE(ring.try_push(make_item(99)));  // full
   EXPECT_EQ(ring.drops(), 1u);
@@ -56,7 +58,8 @@ TEST(SpscRing, PushPopFifo) {
 
 TEST(SpscRing, DropCounterCountsRejectedPushes) {
   wt::SpscRing<Item> ring(4);
-  for (std::uint64_t i = 0; i < 10; ++i) ring.try_push(make_item(i));
+  for (std::uint64_t i = 0; i < 10; ++i)
+    ring.try_push(make_item(i));
   EXPECT_EQ(ring.drops(), 6u);  // 10 - 4 slots
   Item out;
   for (std::uint64_t i = 0; i < 4; ++i) {
@@ -103,10 +106,12 @@ TEST(SpscRing, StressTenMillionItemsFifoNoLoss) {
   std::uint64_t expected = 0;
   while (!producer_done.load(std::memory_order_acquire) || popped < kTotal) {
     if (!ring.try_pop(out)) {
-      if (producer_done.load(std::memory_order_acquire)) break;
+      if (producer_done.load(std::memory_order_acquire))
+        break;
       continue;
     }
-    if (out.seq != expected) saw_gap = true;  // FIFO violation
+    if (out.seq != expected)
+      saw_gap = true;  // FIFO violation
     for (int i = 0; i < 7; ++i) {
       if (out.payload[i] != expected * 31 + static_cast<std::uint64_t>(i)) {
         saw_gap = true;  // corruption

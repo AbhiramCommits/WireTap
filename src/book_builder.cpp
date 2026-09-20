@@ -4,22 +4,20 @@
 
 namespace wiretap {
 
-std::map<std::uint32_t, std::uint64_t>& BookBuilder::side_map(SymbolBook& sb,
-                                                              Side side) noexcept {
+std::map<std::uint32_t, std::uint64_t>& BookBuilder::side_map(SymbolBook& sb, Side side) noexcept {
   return side == Side::Sell ? sb.asks : sb.bids;
 }
 
-void BookBuilder::add_level(SymbolBook& sb, Side side, std::uint32_t price,
-                            std::uint64_t qty) {
+void BookBuilder::add_level(SymbolBook& sb, Side side, std::uint32_t price, std::uint64_t qty) {
   auto& levels = side_map(sb, side);
   levels[price] += qty;
 }
 
-void BookBuilder::remove_level(SymbolBook& sb, Side side, std::uint32_t price,
-                               std::uint64_t qty) {
+void BookBuilder::remove_level(SymbolBook& sb, Side side, std::uint32_t price, std::uint64_t qty) {
   auto& levels = side_map(sb, side);
   auto it = levels.find(price);
-  if (it == levels.end()) return;
+  if (it == levels.end())
+    return;
   if (qty >= it->second) {
     levels.erase(it);
   } else {
@@ -56,8 +54,7 @@ void BookBuilder::apply(const BookUpdate& u) {
       }
       OrderRecord& o = it->second;
       SymbolBook& sb = symbols_.find(o.symbol_key)->second;
-      const std::uint64_t q =
-          std::min<std::uint64_t>(u.qty, o.qty);  // never trust the feed
+      const std::uint64_t q = std::min<std::uint64_t>(u.qty, o.qty);  // never trust the feed
       remove_level(sb, o.side, o.price_ticks, q);
       o.qty -= static_cast<std::uint32_t>(q);
       if (o.qty == 0) {
@@ -105,22 +102,20 @@ void BookBuilder::apply(const BookUpdate& u) {
   }
 }
 
-bool BookBuilder::snapshot(const char symbol[8], std::size_t depth,
-                           DepthSnapshot& out) const {
+bool BookBuilder::snapshot(const char symbol[8], std::size_t depth, DepthSnapshot& out) const {
   out.bids.clear();
   out.asks.clear();
   const auto it = symbols_.find(symbol_key(symbol));
-  if (it == symbols_.end()) return false;
+  if (it == symbols_.end())
+    return false;
 
   const SymbolBook& sb = it->second;
   out.bids.reserve(std::min(depth, sb.bids.size()));
-  for (auto rit = sb.bids.rbegin(); rit != sb.bids.rend() && out.bids.size() < depth;
-       ++rit) {
+  for (auto rit = sb.bids.rbegin(); rit != sb.bids.rend() && out.bids.size() < depth; ++rit) {
     out.bids.push_back({rit->first, rit->second});
   }
   out.asks.reserve(std::min(depth, sb.asks.size()));
-  for (auto it2 = sb.asks.begin(); it2 != sb.asks.end() && out.asks.size() < depth;
-       ++it2) {
+  for (auto it2 = sb.asks.begin(); it2 != sb.asks.end() && out.asks.size() < depth; ++it2) {
     out.asks.push_back({it2->first, it2->second});
   }
   return true;

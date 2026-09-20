@@ -35,12 +35,12 @@ struct GapRequest {
 };
 
 struct GapEvent {
-  std::uint64_t start = 0;          // first seq affected by the gap episode
-  std::uint64_t end = 0;            // last seq affected (may include survivors)
-  std::uint64_t missing = 0;        // total seqs actually missing in the episode
+  std::uint64_t start = 0;    // first seq affected by the gap episode
+  std::uint64_t end = 0;      // last seq affected (may include survivors)
+  std::uint64_t missing = 0;  // total seqs actually missing in the episode
   std::uint64_t detected_ticks = 0;
-  std::uint64_t healed_ticks = 0;   // set when healed
-  bool healed = false;              // false => permanently (partially) lost
+  std::uint64_t healed_ticks = 0;  // set when healed
+  bool healed = false;             // false => permanently (partially) lost
 };
 
 struct BufferedPacket {
@@ -51,9 +51,9 @@ struct BufferedPacket {
 };
 
 enum class PacketDisposition : std::uint8_t {
-  Apply,    // caller applies the packet now
-  Buffered, // held in the reorder window (gap_detected/new_gap may be set)
-  Discard,  // duplicate or stale
+  Apply,     // caller applies the packet now
+  Buffered,  // held in the reorder window (gap_detected/new_gap may be set)
+  Discard,   // duplicate or stale
 };
 
 struct PushResult {
@@ -66,18 +66,15 @@ class GapTracker {
  public:
   // `window` = reorder window size; `timeout_ns` = how long a gap may stay
   // open before missing packets are declared permanently lost.
-  explicit GapTracker(std::size_t window = 1024,
-                      std::uint64_t timeout_ns = 1000000000ull);
+  explicit GapTracker(std::size_t window = 1024, std::uint64_t timeout_ns = 1000000000ull);
   ~GapTracker();
   GapTracker(const GapTracker&) = delete;
   GapTracker& operator=(const GapTracker&) = delete;
 
   // Decode-thread hot path. `bytes` is copied only when the packet is
   // buffered; the Apply path stores nothing.
-  PushResult push(std::uint64_t seq, std::uint64_t now_ticks,
-                  const std::uint8_t* bytes, std::size_t len,
-                  std::uint64_t recv_ts_ticks,
-                  std::uint64_t hw_ts_ticks) noexcept;
+  PushResult push(std::uint64_t seq, std::uint64_t now_ticks, const std::uint8_t* bytes,
+                  std::size_t len, std::uint64_t recv_ts_ticks, std::uint64_t hw_ts_ticks) noexcept;
 
   // Pops the next packet that should be applied (the packet just pushed, or
   // buffered packets that became consecutive). Caller drains this after every
@@ -92,13 +89,13 @@ class GapTracker {
   // release everything left in the window.
   void flush(std::uint64_t now_ticks);
 
-  void note_recovered_packet() noexcept {
-    recovered_.fetch_add(1, std::memory_order_relaxed);
-  }
+  void note_recovered_packet() noexcept { recovered_.fetch_add(1, std::memory_order_relaxed); }
 
   std::uint64_t gaps_detected() const noexcept { return gaps_.load(std::memory_order_relaxed); }
   std::uint64_t gaps_healed() const noexcept { return healed_.load(std::memory_order_relaxed); }
-  std::uint64_t recovered_packets() const noexcept { return recovered_.load(std::memory_order_relaxed); }
+  std::uint64_t recovered_packets() const noexcept {
+    return recovered_.load(std::memory_order_relaxed);
+  }
   std::uint64_t permanently_lost() const noexcept { return lost_.load(std::memory_order_relaxed); }
   std::uint64_t duplicates() const noexcept { return dups_.load(std::memory_order_relaxed); }
   std::uint64_t window_drops() const noexcept { return wdrops_.load(std::memory_order_relaxed); }
@@ -116,8 +113,7 @@ class GapTracker {
 
   // Prints time-to-heal percentiles to `out` and writes
   // {dir}/{prefix}-heal.hgrm.
-  void write_heal_report(const std::string& dir, const std::string& prefix,
-                         FILE* out) const;
+  void write_heal_report(const std::string& dir, const std::string& prefix, FILE* out) const;
 
  private:
   void pull_buffered() noexcept;
@@ -129,12 +125,12 @@ class GapTracker {
   std::uint64_t expected_ = 0;
   bool started_ = false;
   bool gap_active_ = false;
-  std::uint64_t gap_end_ = 0;             // highest seq seen during the gap
+  std::uint64_t gap_end_ = 0;  // highest seq seen during the gap
   std::uint64_t gap_detected_ticks_ = 0;
-  std::uint64_t gap_lost_ = 0;            // seqs lost in the CURRENT gap
+  std::uint64_t gap_lost_ = 0;  // seqs lost in the CURRENT gap
 
   std::map<std::uint64_t, BufferedPacket> buffered_;  // reorder window
-  std::deque<BufferedPacket> ready_;                 // apply in order
+  std::deque<BufferedPacket> ready_;                  // apply in order
 
   std::vector<GapEvent> events_;
   struct hdr_histogram* heal_hist_ = nullptr;

@@ -22,8 +22,7 @@ namespace wiretap {
 
 class RecoveryClient {
  public:
-  RecoveryClient(std::string host, std::uint16_t port)
-      : host_(std::move(host)), port_(port) {}
+  RecoveryClient(std::string host, std::uint16_t port) : host_(std::move(host)), port_(port) {}
 
   // Blocks until `stop` is set; drains already-queued requests before
   // returning.
@@ -36,13 +35,10 @@ class RecoveryClient {
   std::uint64_t packets_fetched() const noexcept {
     return fetched_.load(std::memory_order_relaxed);
   }
-  std::uint64_t errors() const noexcept {
-    return errors_.load(std::memory_order_relaxed);
-  }
+  std::uint64_t errors() const noexcept { return errors_.load(std::memory_order_relaxed); }
 
  private:
-  bool fetch_range(std::uint64_t start, std::uint64_t end,
-                   SpscRing<Datagram>& recovered);
+  bool fetch_range(std::uint64_t start, std::uint64_t end, SpscRing<Datagram>& recovered);
 
   std::string host_;
   std::uint16_t port_;

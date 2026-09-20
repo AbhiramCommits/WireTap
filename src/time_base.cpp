@@ -54,7 +54,8 @@ std::uint64_t TimeBase::raw_ticks() noexcept {
 }
 
 void TimeBase::initialize() {
-  if (initialized_) return;
+  if (initialized_)
+    return;
 
 #if defined(__x86_64__) || defined(__i386__)
   using_rdtsc_ = true;
@@ -90,8 +91,7 @@ void TimeBase::initialize() {
 
   if (using_rdtsc_) {
     std::fprintf(stderr, "wiretap: time base: rdtsc at %.3f GHz, constant_tsc=%s\n",
-                 static_cast<double>(ticks_per_second_) / 1e9,
-                 constant_tsc_ ? "yes" : "no");
+                 static_cast<double>(ticks_per_second_) / 1e9, constant_tsc_ ? "yes" : "no");
   } else {
     std::fprintf(stderr, "wiretap: time base: CLOCK_MONOTONIC (1 tick = 1 ns)\n");
   }
@@ -99,23 +99,22 @@ void TimeBase::initialize() {
 
 std::uint64_t TimeBase::ticks_to_realtime_ns(std::uint64_t ticks) const noexcept {
   const std::uint64_t d = ticks - epoch_ticks_;
-  const std::uint64_t ns =
-      (d / ticks_per_second_) * 1000000000ull +
-      ((d % ticks_per_second_) * 1000000000ull) / ticks_per_second_;
+  const std::uint64_t ns = (d / ticks_per_second_) * 1000000000ull +
+                           ((d % ticks_per_second_) * 1000000000ull) / ticks_per_second_;
   return epoch_realtime_ns_ + ns;
 }
 
 std::uint64_t TimeBase::realtime_ns_to_ticks(std::uint64_t ns) const noexcept {
   const std::uint64_t d = ns - epoch_realtime_ns_;
-  const std::uint64_t ticks =
-      (d / 1000000000ull) * ticks_per_second_ +
-      ((d % 1000000000ull) * ticks_per_second_) / 1000000000ull;
+  const std::uint64_t ticks = (d / 1000000000ull) * ticks_per_second_ +
+                              ((d % 1000000000ull) * ticks_per_second_) / 1000000000ull;
   return epoch_ticks_ + ticks;
 }
 
 std::uint64_t TimeBase::delta_ns(std::uint64_t end_ticks,
                                  std::uint64_t start_ticks) const noexcept {
-  if (end_ticks <= start_ticks) return 0;
+  if (end_ticks <= start_ticks)
+    return 0;
   const std::uint64_t d = end_ticks - start_ticks;
   return (d / ticks_per_second_) * 1000000000ull +
          ((d % ticks_per_second_) * 1000000000ull) / ticks_per_second_;

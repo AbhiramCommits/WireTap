@@ -1,0 +1,11 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>wiretap benchmark</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head><body style="margin:0;background:#0d1117">
+<div id="chart" style="width:100vw;height:100vh"></div>
+<script>
+const data = {"title": {"text": "wire_to_book latency per configuration (median of repeats)", "textStyle": {"color": "#e6edf3"}}, "tooltip": {"trigger": "axis"}, "legend": {"textStyle": {"color": "#e6edf3"}}, "grid": {"left": 80, "right": 20, "bottom": 160, "top": 40}, "xAxis": {"type": "category", "data": ["busy b1 pin def 500k", "busy b1 nopin def 500k", "busy b8 pin def 500k", "busy b8 nopin def 500k", "busy b32 pin def 100k", "busy b32 pin def 500k", "busy b32 pin def 1000k", "busy b32 pin 64MB 500k", "busy b32 nopin def 500k", "busy b128 pin def 500k", "busy b128 nopin def 500k", "epoll b32 pin def 500k", "epoll b32 pin 64MB 500k", "epoll b32 nopin def 500k"], "axisLabel": {"rotate": 45, "color": "#8b949e"}}, "yAxis": {"type": "log", "name": "ns", "nameTextStyle": {"color": "#8b949e"}, "axisLabel": {"color": "#8b949e"}}, "series": [{"name": "p50", "type": "bar", "data": [274687.0, 287487.0, 302079.0, 252543.0, 165375.0, 270847.0, 289023.0, 281599.0, 266495.0, 279295.0, 262911.0, 295167.0, 289535.0, 310015.0], "itemStyle": {"color": "#3fb950"}}, {"name": "p99", "type": "bar", "data": [86573055.0, 81068031.0, 97320959.0, 80347135.0, 3168255.0, 85262335.0, 95223807.0, 76677119.0, 87818239.0, 81264639.0, 80281599.0, 76414975.0, 71958527.0, 75825151.0], "itemStyle": {"color": "#d29922"}}, {"name": "p99_9", "type": "bar", "data": [113573887.0, 90898431.0, 102891519.0, 92930047.0, 36863999.0, 91684863.0, 107413503.0, 89915391.0, 107544575.0, 91488255.0, 91291647.0, 88604671.0, 84672511.0, 91553791.0], "itemStyle": {"color": "#f85149"}}], "backgroundColor": "#0d1117"};
+const c = echarts.init(document.getElementById('chart'));
+c.setOption(data);
+window.addEventListener('resize', () => c.resize());
+</script></body></html>

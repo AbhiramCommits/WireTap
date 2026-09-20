@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(WIRETAP_BUILD_TESTS "Build unit tests" ON)
 option(WIRETAP_SANITIZE "Enable AddressSanitizer + UBSan" OFF)
+option(WIRETAP_TSAN "Enable ThreadSanitizer (takes precedence over WIRETAP_SANITIZE)" OFF)
+option(WIRETAP_GPROF "Build with -pg for gprof-based profiling" OFF)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
@@ -52,9 +54,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_compile_definitions(wiretap PUBLIC _GNU_SOURCE)
 endif()
 
-if(WIRETAP_SANITIZE)
+if(WIRETAP_TSAN)
+  target_compile_options(wiretap PUBLIC -fsanitize=thread -fno-omit-frame-pointer)
+  target_link_options(wiretap PUBLIC -fsanitize=thread)
+elseif(WIRETAP_SANITIZE)
   target_compile_options(wiretap PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
   target_link_options(wiretap PUBLIC -fsanitize=address,undefined)
+endif()
+
+if(WIRETAP_GPROF)
+  target_compile_options(wiretap PUBLIC -pg)
+  target_link_options(wiretap PUBLIC -pg)
 endif()
 
 add_executable(wiretap-dump src/main.cpp)

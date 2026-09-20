@@ -1,9 +1,5 @@
 #include "receiver.hpp"
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE  // recvmmsg, if_nametoindex
-#endif
-
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -59,7 +55,8 @@ std::string iface_ipv4(const std::string& name) {
   struct ifreq ifr {};
   std::strncpy(ifr.ifr_name, name.c_str(), IFNAMSIZ - 1);
   const int fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-  if (fd < 0) return {};
+  if (fd < 0)
+    return {};
   bool ok = false;
   for (unsigned long req : {0x8915UL, 0xC0206921UL}) {  // SIOCGIFADDR
     if (::ioctl(fd, req, &ifr) == 0) {
@@ -68,7 +65,8 @@ std::string iface_ipv4(const std::string& name) {
     }
   }
   ::close(fd);
-  if (!ok) return {};
+  if (!ok)
+    return {};
   return inet_ntoa(reinterpret_cast<struct sockaddr_in*>(&ifr.ifr_addr)->sin_addr);
 }
 #endif
@@ -78,9 +76,9 @@ std::string iface_ipv4(const std::string& name) {
 std::uint64_t kernel_timestamp_ns(struct msghdr& mh,
                                   [[maybe_unused]] std::atomic<std::uint64_t>& hw_count,
                                   [[maybe_unused]] std::atomic<std::uint64_t>& sw_count) noexcept {
-  for (struct cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr;
-       cmsg = CMSG_NXTHDR(&mh, cmsg)) {
-    if (cmsg->cmsg_level != SOL_SOCKET) continue;
+  for (struct cmsghdr* cmsg = CMSG_FIRSTHDR(&mh); cmsg != nullptr; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
+    if (cmsg->cmsg_level != SOL_SOCKET)
+      continue;
 #if defined(__linux__)
     if (cmsg->cmsg_type == SCM_TIMESTAMPING &&
         cmsg->cmsg_len >= CMSG_LEN(sizeof(struct scm_timestamping))) {
@@ -97,8 +95,7 @@ std::uint64_t kernel_timestamp_ns(struct msghdr& mh,
     }
 #endif
 #if defined(SCM_TIMESTAMPNS)
-    if (cmsg->cmsg_type == SCM_TIMESTAMPNS &&
-        cmsg->cmsg_len >= CMSG_LEN(sizeof(struct timespec))) {
+    if (cmsg->cmsg_type == SCM_TIMESTAMPNS && cmsg->cmsg_len >= CMSG_LEN(sizeof(struct timespec))) {
       struct timespec ts {};
       std::memcpy(&ts, CMSG_DATA(cmsg), sizeof ts);
       if (ts.tv_sec != 0 || ts.tv_nsec != 0) {
@@ -126,8 +123,10 @@ const char* timestamp_mechanism_name(TimestampMechanism m) noexcept {
 }
 
 Receiver::~Receiver() {
-  if (epfd_ >= 0) ::close(epfd_);
-  if (fd_ >= 0) ::close(fd_);
+  if (epfd_ >= 0)
+    ::close(epfd_);
+  if (fd_ >= 0)
+    ::close(fd_);
 }
 
 bool Receiver::open_socket(std::string& err) {
@@ -152,8 +151,7 @@ bool Receiver::open_socket(std::string& err) {
   bind_addr.sin_family = AF_INET;
   bind_addr.sin_port = htons(cfg_.port);
   bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (::bind(fd_, reinterpret_cast<struct sockaddr*>(&bind_addr),
-             sizeof bind_addr) != 0) {
+  if (::bind(fd_, reinterpret_cast<struct sockaddr*>(&bind_addr), sizeof bind_addr) != 0) {
     err = std::string("bind: ") + std::strerror(errno);
     ::close(fd_);
     fd_ = -1;
@@ -186,8 +184,7 @@ bool Receiver::open_socket(std::string& err) {
     } else {
       mreq.imr_address.s_addr = htonl(INADDR_ANY);
     }
-    if (::setsockopt(fd_, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof mreq) !=
-        0) {
+    if (::setsockopt(fd_, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof mreq) != 0) {
       err = std::string("IP_ADD_MEMBERSHIP: ") + std::strerror(errno);
       ::close(fd_);
       fd_ = -1;
@@ -200,16 +197,14 @@ bool Receiver::open_socket(std::string& err) {
       mreq.imr_interface.s_addr = htonl(INADDR_ANY);
     } else {
       const std::string addr = iface_ipv4(cfg_.iface);
-      if (addr.empty() ||
-          ::inet_aton(addr.c_str(), &mreq.imr_interface) == 0) {
+      if (addr.empty() || ::inet_aton(addr.c_str(), &mreq.imr_interface) == 0) {
         err = "cannot resolve interface '" + cfg_.iface + "'";
         ::close(fd_);
         fd_ = -1;
         return false;
       }
     }
-    if (::setsockopt(fd_, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof mreq) !=
-        0) {
+    if (::setsockopt(fd_, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof mreq) != 0) {
       err = std::string("IP_ADD_MEMBERSHIP: ") + std::strerror(errno);
       ::close(fd_);
       fd_ = -1;
@@ -224,10 +219,11 @@ bool Receiver::open_socket(std::string& err) {
   // make clear which tier actually delivered stamps.
   cmsg_len_ = 0;
 #if defined(__linux__)
-  const int ts_flags = SOF_TIMESTAMPING_RX_HARDWARE | SOF_TIMESTAMPING_RX_SOFTWARE |
-                       SOF_TIMESTAMPING_RAW_HARDWARE | SOF_TIMESTAMPING_SOFTWARE;
-  if (::setsockopt(fd_, SOL_SOCKET, SO_TIMESTAMPING, &ts_flags,
-                   sizeof ts_flags) == 0) {
+  const int ts_flags = static_cast<int>(static_cast<unsigned>(SOF_TIMESTAMPING_RX_HARDWARE) |
+                                        static_cast<unsigned>(SOF_TIMESTAMPING_RX_SOFTWARE) |
+                                        static_cast<unsigned>(SOF_TIMESTAMPING_RAW_HARDWARE) |
+                                        static_cast<unsigned>(SOF_TIMESTAMPING_SOFTWARE));
+  if (::setsockopt(fd_, SOL_SOCKET, SO_TIMESTAMPING, &ts_flags, sizeof ts_flags) == 0) {
     ts_mech_ = TimestampMechanism::SofTimestamping;
     cmsg_len_ = CMSG_SPACE(sizeof(struct scm_timestamping));
   } else
@@ -243,14 +239,14 @@ bool Receiver::open_socket(std::string& err) {
   }
 
   if (cfg_.rcvbuf > 0) {
-    ::setsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &cfg_.rcvbuf,
-                 sizeof cfg_.rcvbuf);
+    ::setsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &cfg_.rcvbuf, sizeof cfg_.rcvbuf);
   }
   socklen_t sz = sizeof granted_rcvbuf_;
   ::getsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &granted_rcvbuf_, &sz);
 
   const int flags = ::fcntl(fd_, F_GETFL, 0);
-  ::fcntl(fd_, F_SETFL, flags | O_NONBLOCK);
+  ::fcntl(fd_, F_SETFL,
+          static_cast<int>(static_cast<unsigned>(flags) | static_cast<unsigned>(O_NONBLOCK)));
 
 #if defined(__linux__)
   if (mode_ == RecvMode::Epoll) {
@@ -307,15 +303,15 @@ bool Receiver::open_socket(std::string& err) {
   return true;
 }
 
-bool Receiver::drain_once(SpscRing<Datagram>& ring,
-                          LatencyRecorder* recorder) noexcept {
+bool Receiver::drain_once(SpscRing<Datagram>& ring, LatencyRecorder* recorder,
+                          std::uint64_t warmup_until_ticks) noexcept {
   TimeBase& tb = TimeBase::instance();
 
 #if defined(__linux__)
-  for (auto& m : msgs_) m.msg_hdr.msg_controllen = cmsg_len_;  // reset each call
-  const int n = ::recvmmsg(fd_, msgs_.data(),
-                           static_cast<unsigned int>(msgs_.size()),
-                           MSG_DONTWAIT, nullptr);
+  for (auto& m : msgs_)
+    m.msg_hdr.msg_controllen = cmsg_len_;  // reset each call
+  const int n =
+      ::recvmmsg(fd_, msgs_.data(), static_cast<unsigned int>(msgs_.size()), MSG_DONTWAIT, nullptr);
   if (n < 0) {
     const int e = errno;
     if (e == EAGAIN || e == EWOULDBLOCK || e == EINTR || e == ECONNREFUSED) {
@@ -324,28 +320,31 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring,
     fail(std::string("recvmmsg: ") + std::strerror(e));
     return false;
   }
-  if (n == 0) return false;
+  if (n == 0)
+    return false;
 
   packets_.fetch_add(static_cast<std::uint64_t>(n), std::memory_order_relaxed);
   for (int i = 0; i < n; ++i) {
     const std::size_t len = msgs_[i].msg_len;
     bytes_.fetch_add(len, std::memory_order_relaxed);
-    if (len > kMaxDatagramBytes) {
+    const std::uint64_t recv_ticks = tb.now_ticks();
+    const std::uint64_t kern_ns = kernel_timestamp_ns(msgs_[i].msg_hdr, hw_stamped_, sw_stamped_);
+    // Linux truncates at the iov length and sets MSG_TRUNC; the copied byte
+    // count alone cannot detect an oversized datagram.
+    if (len > kMaxDatagramBytes || (static_cast<unsigned>(msgs_[i].msg_hdr.msg_flags) &
+                                    static_cast<unsigned>(MSG_TRUNC)) != 0) {
       oversize_.fetch_add(1, std::memory_order_relaxed);
       continue;
     }
-    const std::uint64_t recv_ticks = tb.now_ticks();
-    const std::uint64_t kern_ns =
-        kernel_timestamp_ns(msgs_[i].msg_hdr, hw_stamped_, sw_stamped_);
     const bool have_kernel = kern_ns != 0;
     Datagram d;
     d.recv_ts_ticks = recv_ticks;
     d.hw_ts_ticks = have_kernel ? tb.realtime_ns_to_ticks(kern_ns) : recv_ticks;
     d.length = static_cast<std::uint32_t>(len);
     std::memcpy(d.bytes.data(), iovs_[i].iov_base, len);
-    if (have_kernel && recorder != nullptr) {
-      recorder->record(LatencyStage::WireToUserspace,
-                       tb.delta_ns(recv_ticks, d.hw_ts_ticks));
+    if (have_kernel && recorder != nullptr &&
+        (warmup_until_ticks == 0 || recv_ticks >= warmup_until_ticks)) {
+      recorder->record(LatencyStage::WireToUserspace, tb.delta_ns(recv_ticks, d.hw_ts_ticks));
     }
     ring.try_push(d);
   }
@@ -367,10 +366,11 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring,
       fail(std::string("recvmsg: ") + std::strerror(e));
       return any;
     }
-    if (r == 0) break;
+    if (r == 0)
+      break;
     packets_.fetch_add(1, std::memory_order_relaxed);
     bytes_.fetch_add(static_cast<std::uint64_t>(r), std::memory_order_relaxed);
-    if ((msg_.msg_flags & MSG_TRUNC) != 0 ||
+    if ((static_cast<unsigned>(msg_.msg_flags) & static_cast<unsigned>(MSG_TRUNC)) != 0 ||
         static_cast<std::size_t>(r) > kMaxDatagramBytes) {
       oversize_.fetch_add(1, std::memory_order_relaxed);
       continue;
@@ -383,9 +383,9 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring,
     d.hw_ts_ticks = have_kernel ? tb.realtime_ns_to_ticks(kern_ns) : recv_ticks;
     d.length = static_cast<std::uint32_t>(r);
     std::memcpy(d.bytes.data(), buf, static_cast<std::size_t>(r));
-    if (have_kernel && recorder != nullptr) {
-      recorder->record(LatencyStage::WireToUserspace,
-                       tb.delta_ns(recv_ticks, d.hw_ts_ticks));
+    if (have_kernel && recorder != nullptr &&
+        (warmup_until_ticks == 0 || recv_ticks >= warmup_until_ticks)) {
+      recorder->record(LatencyStage::WireToUserspace, tb.delta_ns(recv_ticks, d.hw_ts_ticks));
     }
     ring.try_push(d);
     any = true;
@@ -394,24 +394,28 @@ bool Receiver::drain_once(SpscRing<Datagram>& ring,
 #endif
 }
 
-void Receiver::recv_loop(SpscRing<Datagram>& ring, LatencyRecorder* recorder) {
+void Receiver::recv_loop(SpscRing<Datagram>& ring, LatencyRecorder* recorder,
+                         std::uint64_t warmup_until_ticks) {
   while (!stop_.load(std::memory_order_relaxed)) {
 #if defined(__linux__)
     if (mode_ == RecvMode::Epoll) {
       struct epoll_event ev {};
       const int n = ::epoll_wait(epfd_, &ev, 1, kEpollTimeoutMs);
       if (n < 0) {
-        if (errno == EINTR) continue;
+        if (errno == EINTR)
+          continue;
         fail(std::string("epoll_wait: ") + std::strerror(errno));
         return;
       }
-      if (n == 0) continue;  // timeout: re-check stop
+      if (n == 0)
+        continue;  // timeout: re-check stop
     }
 #endif
     // Busy-poll: spin on drain_once. Epoll: drain until EAGAIN (edge
     // triggered), capped so one hot fd cannot starve shutdown checks.
     for (int round = 0; round < kMaxDrainRounds; ++round) {
-      if (!drain_once(ring, recorder)) break;
+      if (!drain_once(ring, recorder, warmup_until_ticks))
+        break;
     }
   }
 }

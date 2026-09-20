@@ -77,8 +77,7 @@ std::vector<Frame> walk_frames(const std::vector<std::uint8_t>& data) {
 
 // Returns [start,end] inclusive ranges of missing seqs, given the surviving
 // seqs in order.
-std::vector<std::pair<std::uint64_t, std::uint64_t>> holes(
-    const std::vector<Frame>& frames) {
+std::vector<std::pair<std::uint64_t, std::uint64_t>> holes(const std::vector<Frame>& frames) {
   std::vector<std::pair<std::uint64_t, std::uint64_t>> out;
   for (std::size_t i = 1; i < frames.size(); ++i) {
     if (frames[i].seq != frames[i - 1].seq + 1) {
@@ -94,27 +93,29 @@ class TestRetransmitServer {
  public:
   explicit TestRetransmitServer(std::vector<std::uint8_t> capture)
       : data_(std::move(capture)), frames_(walk_frames(data_)) {
-    for (const auto& f : frames_) index_[f.seq] = f;
+    for (const auto& f : frames_)
+      index_[f.seq] = f;
   }
 
   bool start() {
     listen_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
-    if (listen_fd_ < 0) return false;
+    if (listen_fd_ < 0)
+      return false;
     int yes = 1;
     ::setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
     struct sockaddr_in addr {};
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
-    if (::bind(listen_fd_, reinterpret_cast<struct sockaddr*>(&addr),
-               sizeof addr) != 0) {
+    if (::bind(listen_fd_, reinterpret_cast<struct sockaddr*>(&addr), sizeof addr) != 0) {
       ::close(listen_fd_);
       return false;
     }
     socklen_t alen = sizeof addr;
     ::getsockname(listen_fd_, reinterpret_cast<struct sockaddr*>(&addr), &alen);
     port_ = ntohs(addr.sin_port);
-    if (::listen(listen_fd_, 4) != 0) return false;
+    if (::listen(listen_fd_, 4) != 0)
+      return false;
     thread_ = std::thread([this] { run(); });
     return true;
   }
@@ -123,8 +124,10 @@ class TestRetransmitServer {
 
   void stop() {
     stop_ = true;
-    if (thread_.joinable()) thread_.join();
-    if (listen_fd_ >= 0) ::close(listen_fd_);
+    if (thread_.joinable())
+      thread_.join();
+    if (listen_fd_ >= 0)
+      ::close(listen_fd_);
   }
 
  private:
@@ -134,9 +137,11 @@ class TestRetransmitServer {
       pfd.fd = listen_fd_;
       pfd.events = POLLIN;
       const int rc = ::poll(&pfd, 1, 50);
-      if (rc <= 0) continue;
+      if (rc <= 0)
+        continue;
       const int fd = ::accept(listen_fd_, nullptr, nullptr);
-      if (fd < 0) continue;
+      if (fd < 0)
+        continue;
       handle(fd);
       ::close(fd);
     }
@@ -147,12 +152,12 @@ class TestRetransmitServer {
     char ch;
     while (line.size() < 64) {
       const ssize_t r = ::recv(fd, &ch, 1, 0);
-      if (r <= 0 || ch == '\n') break;
+      if (r <= 0 || ch == '\n')
+        break;
       line.push_back(ch);
     }
     std::uint64_t start = 0, end = 0;
-    if (std::sscanf(line.c_str(), "GET %llu %llu", &start, &end) != 2 ||
-        end < start) {
+    if (std::sscanf(line.c_str(), "GET %llu %llu", &start, &end) != 2 || end < start) {
       const std::string err = "ERROR bad request\n";
       ::send(fd, err.data(), err.size(), MSG_NOSIGNAL);
       return;
@@ -186,7 +191,8 @@ void replay_reference(const std::vector<Frame>& frames, wt::BookBuilder& book) {
     updates.clear();
     const auto r = dec.decode_packet(f.bytes.data(), f.bytes.size(), updates);
     EXPECT_EQ(r.error, wt::DecodeError::Ok);
-    for (const auto& u : updates) book.apply(u);
+    for (const auto& u : updates)
+      book.apply(u);
   }
 }
 
@@ -227,10 +233,13 @@ TEST(Recovery, RestoresBookByteIdenticalToZeroDropRun) {
 
   // Sanity: the dropped capture is an exact subsequence of the full capture.
   std::map<std::uint64_t, bool> full_seqs;
-  for (const auto& f : full) full_seqs[f.seq] = true;
-  for (const auto& f : dropped) EXPECT_TRUE(full_seqs.count(f.seq)) << f.seq;
+  for (const auto& f : full)
+    full_seqs[f.seq] = true;
+  for (const auto& f : dropped)
+    EXPECT_TRUE(full_seqs.count(f.seq)) << f.seq;
   std::uint64_t missing_total = 0;
-  for (const auto& h : expected_holes) missing_total += h.second - h.first + 1;
+  for (const auto& h : expected_holes)
+    missing_total += h.second - h.first + 1;
 
   wt::BookBuilder reference;
   replay_reference(full, reference);
@@ -242,8 +251,7 @@ TEST(Recovery, RestoresBookByteIdenticalToZeroDropRun) {
   wt::SpscRing<wt::Datagram> recovered_ring(1024);
   wt::RecoveryClient client("127.0.0.1", server.port());
   std::atomic<bool> stop{false};
-  std::thread recovery_thread(
-      [&] { client.run(gap_ring, recovered_ring, stop); });
+  std::thread recovery_thread([&] { client.run(gap_ring, recovered_ring, stop); });
 
   wt::GapTracker tracker(/*window=*/1024, /*timeout_ns=*/10 * 1000000000ull);
   wt::BookBuilder book;
@@ -252,31 +260,29 @@ TEST(Recovery, RestoresBookByteIdenticalToZeroDropRun) {
   updates.reserve(256);
   std::vector<std::uint64_t> applied_seq;
 
-  auto apply_bytes = [&](const std::vector<std::uint8_t>& bytes,
-                         std::uint64_t seq) {
+  auto apply_bytes = [&](const std::vector<std::uint8_t>& bytes, std::uint64_t seq) {
     updates.clear();
     const auto r = dec.decode_packet(bytes.data(), bytes.size(), updates);
     ASSERT_EQ(r.error, wt::DecodeError::Ok) << "seq " << seq;
-    for (const auto& u : updates) book.apply(u);
+    for (const auto& u : updates)
+      book.apply(u);
     applied_seq.push_back(seq);
   };
 
   auto process = [&](const wt::Datagram& dg, bool recovered) {
-    if (recovered) tracker.note_recovered_packet();
-    const std::uint64_t seq =
-        wt::itch::be64(dg.bytes.data() + wt::itch::kSessionLength);
+    if (recovered)
+      tracker.note_recovered_packet();
+    const std::uint64_t seq = wt::itch::be64(dg.bytes.data() + wt::itch::kSessionLength);
     const std::uint64_t now = wt::TimeBase::instance().now_ticks();
     const auto res = tracker.push(seq, now, dg.bytes.data(), dg.length, now, now);
     if (res.disposition == wt::PacketDisposition::Apply) {
-      apply_bytes(std::vector<std::uint8_t>(dg.bytes.data(),
-                                            dg.bytes.data() + dg.length),
-                  seq);
-    } else if (res.disposition == wt::PacketDisposition::Buffered &&
-               res.gap_detected) {
+      apply_bytes(std::vector<std::uint8_t>(dg.bytes.data(), dg.bytes.data() + dg.length), seq);
+    } else if (res.disposition == wt::PacketDisposition::Buffered && res.gap_detected) {
       ASSERT_TRUE(gap_ring.try_push(res.new_gap));
     }
     wt::BufferedPacket p;
-    while (tracker.pop_applicable(p)) apply_bytes(p.bytes, p.seq);
+    while (tracker.pop_applicable(p))
+      apply_bytes(p.bytes, p.seq);
   };
 
   // Feed the surviving packets in file order, opportunistically draining the
@@ -287,17 +293,20 @@ TEST(Recovery, RestoresBookByteIdenticalToZeroDropRun) {
     dg.length = static_cast<std::uint32_t>(f.bytes.size());
     std::memcpy(dg.bytes.data(), f.bytes.data(), f.bytes.size());
     process(dg, false);
-    while (recovered_ring.try_pop(dg)) process(dg, true);
+    while (recovered_ring.try_pop(dg))
+      process(dg, true);
   }
 
   // Settle: let recovery finish; the tracker closes out once everything
   // heals.
   const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
   while (!tracker.settled() && std::chrono::steady_clock::now() < deadline) {
-    while (recovered_ring.try_pop(dg)) process(dg, true);
+    while (recovered_ring.try_pop(dg))
+      process(dg, true);
     tracker.advance_time(wt::TimeBase::instance().now_ticks());
     wt::BufferedPacket p;
-    while (tracker.pop_applicable(p)) apply_bytes(p.bytes, p.seq);
+    while (tracker.pop_applicable(p))
+      apply_bytes(p.bytes, p.seq);
     std::this_thread::yield();
   }
   stop.store(true);
@@ -366,12 +375,12 @@ TEST(Recovery, OutOfOrderArrivalWithinWindowAppliesInOrder) {
   updates.reserve(256);
   std::vector<std::uint64_t> applied_seq;
 
-  auto apply_bytes = [&](const std::vector<std::uint8_t>& bytes,
-                         std::uint64_t seq) {
+  auto apply_bytes = [&](const std::vector<std::uint8_t>& bytes, std::uint64_t seq) {
     updates.clear();
     const auto r = dec.decode_packet(bytes.data(), bytes.size(), updates);
     ASSERT_EQ(r.error, wt::DecodeError::Ok);
-    for (const auto& u : updates) book.apply(u);
+    for (const auto& u : updates)
+      book.apply(u);
     applied_seq.push_back(seq);
   };
 
@@ -383,13 +392,15 @@ TEST(Recovery, OutOfOrderArrivalWithinWindowAppliesInOrder) {
       apply_bytes(f.bytes, f.seq);
     }
     wt::BufferedPacket p;
-    while (tracker.pop_applicable(p)) apply_bytes(p.bytes, p.seq);
+    while (tracker.pop_applicable(p))
+      apply_bytes(p.bytes, p.seq);
   }
   tracker.flush(wt::TimeBase::instance().now_ticks());
   wt::BufferedPacket p;
-  while (tracker.pop_applicable(p)) apply_bytes(p.bytes, p.seq);
+  while (tracker.pop_applicable(p))
+    apply_bytes(p.bytes, p.seq);
 
-  EXPECT_GT(tracker.gaps_detected(), 0u);      // displaced packets did open gaps
+  EXPECT_GT(tracker.gaps_detected(), 0u);                     // displaced packets did open gaps
   EXPECT_EQ(tracker.gaps_healed(), tracker.gaps_detected());  // all healed locally
   EXPECT_EQ(tracker.permanently_lost(), 0u);
   EXPECT_EQ(tracker.duplicates(), 0u);

@@ -31,7 +31,7 @@ namespace {
 namespace fs = std::filesystem;
 
 constexpr std::size_t kMaxPendingUpdates = 1'000'000;  // ~1M rows per flush
-constexpr std::size_t kStatsFlushRows = 60;             // ~1 minute of seconds
+constexpr std::size_t kStatsFlushRows = 60;            // ~1 minute of seconds
 constexpr int kFlushMaxAgeMs = 5000;
 constexpr int kPublishIntervalMs = 100;  // 10 Hz
 constexpr int kMaxRecentGaps = 20;
@@ -114,11 +114,10 @@ std::shared_ptr<arrow::Schema> gaps_schema() {
 }
 
 std::shared_ptr<parquet::WriterProperties> writer_properties() {
-  static const auto props =
-      parquet::WriterProperties::Builder()
-          .compression(arrow::Compression::ZSTD)
-          ->max_row_group_length(1'000'000)
-          ->build();
+  static const auto props = parquet::WriterProperties::Builder()
+                                .compression(arrow::Compression::ZSTD)
+                                ->max_row_group_length(1'000'000)
+                                ->build();
   return props;
 }
 
@@ -127,24 +126,24 @@ void civil_date(std::uint64_t epoch_ns, char date[11], int& hour) {
   const std::time_t t = static_cast<std::time_t>(epoch_ns / 1000000000ull);
   struct tm tm {};
   ::gmtime_r(&t, &tm);
-  std::snprintf(date, 11, "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1,
-                tm.tm_mday);
+  std::snprintf(date, 11, "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
   hour = tm.tm_hour;
 }
-
 
 }  // namespace
 
 std::uint32_t dump_histogram_buckets(struct ::hdr_histogram* h, HistogramBucket* out,
                                      std::uint32_t max) {
-  if (h == nullptr || out == nullptr || max == 0) return 0;
+  if (h == nullptr || out == nullptr || max == 0)
+    return 0;
   // hdr_iter_init() uses the "all values" iteration: one step per occupied
   // bucket, with the count in iter.count and the value in iter.value.
   struct hdr_iter iter {};
   ::hdr_iter_init(&iter, h);
   std::uint32_t n = 0;
   while (n < max && ::hdr_iter_next(&iter)) {
-    if (iter.count <= 0) continue;
+    if (iter.count <= 0)
+      continue;
     out[n].value = static_cast<std::uint64_t>(iter.value);
     out[n].count = static_cast<std::uint64_t>(iter.count);
     ++n;
@@ -179,7 +178,7 @@ ArchiveWriter::ArchiveWriter(std::string archive_dir, std::string dash_socket_pa
     } else {
       // Snapshots (books + histogram) can exceed the tiny default dgram
       // send buffer; raise it so sendto does not fail with EMSGSIZE.
-      const int sndbuf = 4 << 20;
+      const int sndbuf = 1u << 22u;
       ::setsockopt(dash_fd_, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof sndbuf);
     }
   }
@@ -190,7 +189,8 @@ ArchiveWriter::ArchiveWriter(std::string archive_dir, std::string dash_socket_pa
 }
 
 ArchiveWriter::~ArchiveWriter() {
-  if (dash_fd_ >= 0) ::close(dash_fd_);
+  if (dash_fd_ >= 0)
+    ::close(dash_fd_);
 }
 
 void ArchiveWriter::close_all_writers() {
@@ -206,7 +206,8 @@ std::shared_ptr<ArchiveWriter::ParquetWriter> ArchiveWriter::writer_for(
     const std::string& partition_key, const fs::path& dir,
     const std::shared_ptr<arrow::Schema>& schema) {
   auto it = writers_.find(partition_key);
-  if (it != writers_.end()) return it->second;
+  if (it != writers_.end())
+    return it->second;
 
   std::error_code ec;
   fs::create_directories(dir, ec);
@@ -269,9 +270,8 @@ void ArchiveWriter::flush_updates() {
     const std::string date_str = partition.substr(0, p1);
     const std::string sym = partition.substr(p1 + 1, p2 - p1 - 1);
     const std::string hour_str = partition.substr(p2 + 1);
-    const fs::path dir = fs::path(archive_dir_) / "book" /
-                         ("date=" + date_str) / ("symbol=" + sym) /
-                         ("hour=" + hour_str);
+    const fs::path dir = fs::path(archive_dir_) / "book" / ("date=" + date_str) /
+                         ("symbol=" + sym) / ("hour=" + hour_str);
     auto pw = writer_for(partition, dir, schema);
     if (pw == nullptr) {
       pending_updates_.clear();
@@ -301,10 +301,11 @@ void ArchiveWriter::flush_updates() {
       (void)exchange_builder.Append(static_cast<std::int64_t>(u.exchange_ts_ns));
     }
 
-    std::shared_ptr<arrow::Array> ts_arr, date_arr, sym_arr, hour_arr, side_arr,
-        price_arr, qty_arr, ref_arr, old_ref_arr, action_arr, exch_arr;
-    auto status = [](arrow::Status st) {
-      if (!st.ok()) throw std::runtime_error(st.ToString());
+    std::shared_ptr<arrow::Array> ts_arr, date_arr, sym_arr, hour_arr, side_arr, price_arr, qty_arr,
+        ref_arr, old_ref_arr, action_arr, exch_arr;
+    auto status = [](const arrow::Status& st) {
+      if (!st.ok())
+        throw std::runtime_error(st.ToString());
     };
     status(ts_builder.Finish(&ts_arr));
     status(date_builder.Finish(&date_arr));
@@ -318,10 +319,9 @@ void ArchiveWriter::flush_updates() {
     status(action_builder.Finish(&action_arr));
     status(exchange_builder.Finish(&exch_arr));
 
-    auto batch = arrow::RecordBatch::Make(
-        schema, static_cast<std::int64_t>(rows.size()),
-        {ts_arr, date_arr, sym_arr, hour_arr, side_arr, price_arr, qty_arr, ref_arr,
-         old_ref_arr, action_arr, exch_arr});
+    auto batch = arrow::RecordBatch::Make(schema, static_cast<std::int64_t>(rows.size()),
+                                          {ts_arr, date_arr, sym_arr, hour_arr, side_arr, price_arr,
+                                           qty_arr, ref_arr, old_ref_arr, action_arr, exch_arr});
     arrow::Status st = pw->writer->WriteRecordBatch(*batch);
     if (!st.ok()) {
       ok_ = false;
@@ -358,10 +358,13 @@ void ArchiveWriter::flush_stats() {
     std::vector<std::string> f;
     std::string tok;
     std::istringstream ss(row);
-    while (std::getline(ss, tok, '\t')) f.push_back(tok);
-    if (f.size() != 30) continue;
+    while (std::getline(ss, tok, '\t'))
+      f.push_back(tok);
+    if (f.size() != 30)
+      continue;
     (void)ts_builder.Append(std::stoll(f[0]));
-    for (int i = 0; i < 29; ++i) (void)cols[i].Append(std::stoull(f[i + 1]));
+    for (int i = 0; i < 29; ++i)
+      (void)cols[i].Append(std::stoull(f[i + 1]));
   }
 
   std::vector<std::shared_ptr<arrow::Array>> arrays;
@@ -373,8 +376,8 @@ void ArchiveWriter::flush_stats() {
     (void)cols[i].Finish(&a);
     arrays.push_back(a);
   }
-  auto batch = arrow::RecordBatch::Make(schema, static_cast<std::int64_t>(pending_stats_rows_.size()),
-                                        arrays);
+  auto batch = arrow::RecordBatch::Make(
+      schema, static_cast<std::int64_t>(pending_stats_rows_.size()), arrays);
   arrow::Status st = pw->writer->WriteRecordBatch(*batch);
   if (!st.ok()) {
     ok_ = false;
@@ -412,8 +415,10 @@ void ArchiveWriter::flush_depth() {
     std::vector<std::string> f;
     std::string tok;
     std::istringstream ss(row);
-    while (std::getline(ss, tok, '\t')) f.push_back(tok);
-    if (f.size() != 6) continue;
+    while (std::getline(ss, tok, '\t'))
+      f.push_back(tok);
+    if (f.size() != 6)
+      continue;
     (void)(void)sec_builder.Append(std::stoll(f[0]));
     (void)(void)sym_builder.Append(f[1]);
     (void)(void)side_builder.Append(f[2]);
@@ -429,8 +434,7 @@ void ArchiveWriter::flush_depth() {
   (void)price_builder.Finish(&a4);
   (void)qty_builder.Finish(&a5);
   auto batch = arrow::RecordBatch::Make(
-      schema, static_cast<std::int64_t>(pending_depth_rows_.size()),
-      {a0, a1, a2, a3, a4, a5});
+      schema, static_cast<std::int64_t>(pending_depth_rows_.size()), {a0, a1, a2, a3, a4, a5});
   arrow::Status st = pw->writer->WriteRecordBatch(*batch);
   if (!st.ok()) {
     ok_ = false;
@@ -466,7 +470,8 @@ void ArchiveWriter::flush_gaps() {
   TimeBase& tb = TimeBase::instance();
   for (const auto& g : pending_gaps_) {
     (void)(void)dts.Append(static_cast<std::int64_t>(tb.ticks_to_realtime_ns(g.detected_ticks)));
-    (void)(void)hts.Append(static_cast<std::int64_t>(g.healed ? tb.ticks_to_realtime_ns(g.healed_ticks) : 0));
+    (void)(void)hts.Append(
+        static_cast<std::int64_t>(g.healed ? tb.ticks_to_realtime_ns(g.healed_ticks) : 0));
     (void)(void)start_b.Append(g.start);
     (void)(void)end_b.Append(g.end);
     (void)(void)missing_b.Append(g.missing);
@@ -479,8 +484,8 @@ void ArchiveWriter::flush_gaps() {
   (void)end_b.Finish(&a3);
   (void)missing_b.Finish(&a4);
   (void)healed_b.Finish(&a5);
-  auto batch = arrow::RecordBatch::Make(
-      schema, static_cast<std::int64_t>(pending_gaps_.size()), {a0, a1, a2, a3, a4, a5});
+  auto batch = arrow::RecordBatch::Make(schema, static_cast<std::int64_t>(pending_gaps_.size()),
+                                        {a0, a1, a2, a3, a4, a5});
   arrow::Status st = pw->writer->WriteRecordBatch(*batch);
   if (!st.ok()) {
     ok_ = false;
@@ -492,7 +497,8 @@ void ArchiveWriter::flush_gaps() {
 }
 
 void ArchiveWriter::publish_snapshot() {
-  if (dash_fd_ < 0) return;
+  if (dash_fd_ < 0)
+    return;
   TimeBase& tb = TimeBase::instance();
   const std::uint64_t now_ticks = tb.now_ticks();
 
@@ -514,12 +520,12 @@ void ArchiveWriter::publish_snapshot() {
   out += ",\"recovered\":";
   out += std::to_string(last_stats_.recovered);
   out += ",\"recent\":[";
-  const std::size_t from = recent_gaps_.size() > kMaxRecentGaps
-                               ? recent_gaps_.size() - kMaxRecentGaps
-                               : 0;
+  const std::size_t from =
+      recent_gaps_.size() > kMaxRecentGaps ? recent_gaps_.size() - kMaxRecentGaps : 0;
   for (std::size_t i = from; i < recent_gaps_.size(); ++i) {
     const GapEvent& g = recent_gaps_[i];
-    if (i > from) out += ",";
+    if (i > from)
+      out += ',';
     out += "{\"start\":";
     out += std::to_string(g.start);
     out += ",\"end\":";
@@ -530,7 +536,7 @@ void ArchiveWriter::publish_snapshot() {
     out += g.healed ? "true" : "false";
     out += ",\"heal_ns\":";
     out += std::to_string(g.healed ? tb.delta_ns(g.healed_ticks, g.detected_ticks) : 0);
-    out += "}";
+    out += '}';
   }
   out += "]}";
 
@@ -551,7 +557,7 @@ void ArchiveWriter::publish_snapshot() {
     out += std::to_string(p.p9999);
     out += ",\"max\":";
     out += std::to_string(p.max);
-    out += "}";
+    out += '}';
   };
   lat("queue_delay", last_stats_.queue_delay);
   lat("decode_time", last_stats_.decode_time);
@@ -561,12 +567,13 @@ void ArchiveWriter::publish_snapshot() {
   out += std::to_string(last_stats_.sec);
   out += ",\"buckets\":[";
   for (std::uint32_t i = 0; i < last_stats_.bucket_count; ++i) {
-    if (i > 0) out += ",";
-    out += "[";
+    if (i > 0)
+      out += ',';
+    out += '[';
     out += std::to_string(last_stats_.buckets[i].value);
-    out += ",";
+    out += ',';
     out += std::to_string(last_stats_.buckets[i].count);
-    out += "]";
+    out += ']';
   }
   out += "]}";
 
@@ -576,7 +583,7 @@ void ArchiveWriter::publish_snapshot() {
   out += std::to_string(last_stats_.messages);
   out += ",\"packets\":";
   out += std::to_string(last_stats_.packets);
-  out += "}";
+  out += '}';
 
   // Top-10 books for every symbol.
   out += ",\"books\":{";
@@ -588,27 +595,31 @@ void ArchiveWriter::publish_snapshot() {
     char sym[9];
     std::snprintf(sym, sizeof sym, "SYM%05d", i);
     DepthSnapshot s;
-    if (!book_.snapshot(sym, kDepth, s)) break;
-    if (written_symbols++ > 0) out += ",";
-    out += "\"";
+    if (!book_.snapshot(sym, kDepth, s))
+      break;
+    if (written_symbols++ > 0)
+      out += ',';
+    out += '"';
     out += sym;
     out += "\":{\"bids\":[";
     for (std::size_t j = 0; j < s.bids.size(); ++j) {
-      if (j > 0) out += ",";
-      out += "[";
+      if (j > 0)
+        out += ',';
+      out += '[';
       out += std::to_string(s.bids[j].price_ticks);
-      out += ",";
+      out += ',';
       out += std::to_string(s.bids[j].qty);
-      out += "]";
+      out += ']';
     }
     out += "],\"asks\":[";
     for (std::size_t j = 0; j < s.asks.size(); ++j) {
-      if (j > 0) out += ",";
-      out += "[";
+      if (j > 0)
+        out += ',';
+      out += '[';
       out += std::to_string(s.asks[j].price_ticks);
-      out += ",";
+      out += ',';
       out += std::to_string(s.asks[j].qty);
-      out += "]";
+      out += ']';
     }
     out += "]}";
   }
@@ -624,8 +635,8 @@ void ArchiveWriter::publish_snapshot() {
   } else {
     ++publish_errors_;  // receiver down / socket full: never retry hard here
     if (publish_errors_ == 1) {
-      std::fprintf(stderr, "wiretap: dash publish failed (%zu bytes): %s\n",
-                   out.size(), std::strerror(errno));
+      std::fprintf(stderr, "wiretap: dash publish failed (%zu bytes): %s\n", out.size(),
+                   std::strerror(errno));
     }
   }
 }
@@ -678,11 +689,12 @@ void ArchiveWriter::drain(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& 
   while (gaps.try_pop(g)) {
     recent_gaps_.push_back(g);
     if (recent_gaps_.size() > 200) {
-      recent_gaps_.erase(recent_gaps_.begin(),
-                         recent_gaps_.begin() +
-                             static_cast<long>(recent_gaps_.size() - kMaxRecentGaps));
+      recent_gaps_.erase(
+          recent_gaps_.begin(),
+          recent_gaps_.begin() + static_cast<long>(recent_gaps_.size() - kMaxRecentGaps));
     }
-    if (archive_dir_.size()) pending_gaps_.push_back(g);
+    if (archive_dir_.size())
+      pending_gaps_.push_back(g);
   }
 
   // Per-second depth snapshots (into the depth table).
@@ -695,13 +707,13 @@ void ArchiveWriter::drain(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& 
         char sym[9];
         std::snprintf(sym, sizeof sym, "SYM%05d", i);
         DepthSnapshot s;
-        if (!book_.snapshot(sym, kDepth, s)) break;
+        if (!book_.snapshot(sym, kDepth, s))
+          break;
         auto emit = [&](const std::vector<DepthLevel>& levels, const char* side) {
           for (std::size_t j = 0; j < levels.size(); ++j) {
             char row[128];
             std::snprintf(row, sizeof row, "%llu\t%s\t%s\t%zu\t%u\t%llu\n",
-                          static_cast<unsigned long long>(sec), sym, side, j,
-                          levels[j].price_ticks,
+                          static_cast<unsigned long long>(sec), sym, side, j, levels[j].price_ticks,
                           static_cast<unsigned long long>(levels[j].qty));
             pending_depth_rows_.emplace_back(row);
           }
@@ -728,7 +740,8 @@ void ArchiveWriter::run(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& st
       if (archive_dir_.size()) {
         flush_updates();
         flush_gaps();
-        if (pending_stats_rows_.size() >= kStatsFlushRows) flush_stats();
+        if (pending_stats_rows_.size() >= kStatsFlushRows)
+          flush_stats();
         flush_depth();
       }
       last_flush = now;
@@ -755,11 +768,23 @@ void ArchiveWriter::run(SpscRing<BookUpdate>& updates, SpscRing<SecondStats>& st
   publish_snapshot();
 }
 
-std::uint64_t ArchiveWriter::updates_written() const noexcept { return updates_written_; }
-std::uint64_t ArchiveWriter::stats_written() const noexcept { return stats_written_; }
-std::uint64_t ArchiveWriter::gaps_written() const noexcept { return gaps_written_; }
-std::uint64_t ArchiveWriter::depth_written() const noexcept { return depth_written_; }
-std::uint64_t ArchiveWriter::snapshots_published() const noexcept { return snapshots_published_; }
-std::uint64_t ArchiveWriter::publish_errors() const noexcept { return publish_errors_; }
+std::uint64_t ArchiveWriter::updates_written() const noexcept {
+  return updates_written_;
+}
+std::uint64_t ArchiveWriter::stats_written() const noexcept {
+  return stats_written_;
+}
+std::uint64_t ArchiveWriter::gaps_written() const noexcept {
+  return gaps_written_;
+}
+std::uint64_t ArchiveWriter::depth_written() const noexcept {
+  return depth_written_;
+}
+std::uint64_t ArchiveWriter::snapshots_published() const noexcept {
+  return snapshots_published_;
+}
+std::uint64_t ArchiveWriter::publish_errors() const noexcept {
+  return publish_errors_;
+}
 
 }  // namespace wiretap
