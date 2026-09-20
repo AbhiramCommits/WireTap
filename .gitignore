@@ -16,3 +16,4 @@ tools/dashboard/frontend/dist/
 *.hgrm
 wiretap-latency.json
 bench/results/
+gmon.out
