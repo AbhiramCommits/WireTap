@@ -121,8 +121,10 @@ std::uint64_t TimeBase::delta_ns(std::uint64_t end_ticks,
 }
 
 std::uint64_t TimeBase::ns_to_ticks(std::uint64_t ns) const noexcept {
+  // Round up: with >= 1 tick/ns, delta_ns(ns_to_ticks(x), 0) == x exactly
+  // (truncating both ways lost 1 ns), and timeouts never fire early.
   return (ns / 1000000000ull) * ticks_per_second_ +
-         ((ns % 1000000000ull) * ticks_per_second_) / 1000000000ull;
+         ((ns % 1000000000ull) * ticks_per_second_ + 999999999ull) / 1000000000ull;
 }
 
 }  // namespace wiretap
