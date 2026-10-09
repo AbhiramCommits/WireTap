@@ -268,16 +268,20 @@ bool Receiver::open_socket(std::string& err) {
     }
   }
 
+  // Each receive slot is one byte larger than the largest accepted datagram,
+  // so an oversize datagram always shows up as len > kMaxDatagramBytes even
+  // where the kernel does not report MSG_TRUNC.
+  constexpr std::size_t kSlot = kMaxDatagramBytes + 1;
   const std::size_t n = cfg_.batch ? cfg_.batch : 1;
   msgs_.resize(n);
   iovs_.resize(n);
-  batch_buf_.reset(new std::uint8_t[n * kMaxDatagramBytes]);
+  batch_buf_.reset(new std::uint8_t[n * kSlot]);
   if (cmsg_len_ > 0) {
     ctrl_buf_.reset(new std::uint8_t[n * cmsg_len_]);
   }
   for (std::size_t i = 0; i < n; ++i) {
-    iovs_[i].iov_base = batch_buf_.get() + i * kMaxDatagramBytes;
-    iovs_[i].iov_len = kMaxDatagramBytes;
+    iovs_[i].iov_base = batch_buf_.get() + i * kSlot;
+    iovs_[i].iov_len = kSlot;
     std::memset(&msgs_[i], 0, sizeof msgs_[i]);
     msgs_[i].msg_hdr.msg_iov = &iovs_[i];
     msgs_[i].msg_hdr.msg_iovlen = 1;
@@ -287,9 +291,9 @@ bool Receiver::open_socket(std::string& err) {
     }
   }
 #else
-  buf_.reset(new std::uint8_t[kMaxDatagramBytes]);
+  buf_.reset(new std::uint8_t[kMaxDatagramBytes + 1]);  // +1: see kSlot above
   iov_.iov_base = buf_.get();
-  iov_.iov_len = kMaxDatagramBytes;
+  iov_.iov_len = kMaxDatagramBytes + 1;
   std::memset(&msg_, 0, sizeof msg_);
   msg_.msg_iov = &iov_;
   msg_.msg_iovlen = 1;

@@ -117,6 +117,13 @@ void run_loopback_test(wt::RecvMode mode) {
     }
   }
 
+  // The oversized datagram is sent last and never reaches the ring; give the
+  // receiver time to read and count it before stopping.
+  const auto count_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (rx.oversize_dropped() == 0 && std::chrono::steady_clock::now() < count_deadline) {
+    std::this_thread::yield();
+  }
+
   rx.request_stop();
   rx_thread.join();
   ::close(sfd);

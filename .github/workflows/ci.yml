@@ -51,7 +51,7 @@ jobs:
       - name: Build (TSan)
         run: cmake --build build-tsan -j2
 
-      - name: Test (TSan: SPSC ring must be race-free)
+      - name: "Test (TSan: SPSC ring must be race-free)"
         run: ctest --test-dir build-tsan --output-on-failure
 
   format-tidy:
